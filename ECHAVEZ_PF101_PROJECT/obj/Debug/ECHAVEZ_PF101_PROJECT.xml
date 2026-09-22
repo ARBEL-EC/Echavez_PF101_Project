@@ -1,0 +1,40 @@
+﻿<?xml version="1.0"?>
+<doc>
+<assembly>
+<name>
+ECHAVEZ_PF101_PROJECT
+</name>
+</assembly>
+<members>
+<member name="T:ECHAVEZ_PF101_PROJECT.My.Resources.Resources">
+<summary>
+  A strongly-typed resource class, for looking up localized strings, etc.
+</summary>
+</member>
+<member name="P:ECHAVEZ_PF101_PROJECT.My.Resources.Resources.ResourceManager">
+<summary>
+  Returns the cached ResourceManager instance used by this class.
+</summary>
+</member>
+<member name="P:ECHAVEZ_PF101_PROJECT.My.Resources.Resources.Culture">
+<summary>
+  Overrides the current thread's CurrentUICulture property for all
+  resource lookups using this strongly typed resource class.
+</summary>
+</member>
+<member name="P:ECHAVEZ_PF101_PROJECT.My.Resources.Resources.background">
+<summary>
+  Looks up a localized resource of type System.Drawing.Bitmap.
+</summary>
+</member>
+<member name="P:ECHAVEZ_PF101_PROJECT.ThemeManager.FontFamilyName">
+ <summary>Font family used for standard UI.</summary>
+</member>
+<member name="P:ECHAVEZ_PF101_PROJECT.ThemeManager.BaseFontSize">
+ <summary>Base UI font size in points.</summary>
+</member>
+<member name="P:ECHAVEZ_PF101_PROJECT.ThemeManager.BoldLabels">
+ <summary>When True, Labels are bold (headers/labels), as per the design brief.</summary>
+</member>
+</members>
+</doc>
