@@ -1,5 +1,7 @@
 ﻿Public Class frmLesson6_SelectionRepetition
 
+    Private Const MaxLoopPasses As Integer = 1000
+
     Private Sub frmLesson6_SelectionRepetition_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         ThemeManager.ApplyTheme(Me)
         ' 1. Setup Decision dropdowns
@@ -14,6 +16,7 @@
         cboLoopType.Items.Add("For...Next (Negative Step)")
         cboLoopType.Items.Add("Do While...Loop (Pre-Test)")
         cboLoopType.Items.Add("Do...Loop Until (Post-Test)")
+        cboLoopType.Items.Add("While...End While (Skip even values)")
         cboLoopType.SelectedIndex = 0
 
         ' 3. Populate Reference Theory
@@ -35,7 +38,9 @@
             "   • Fallback default: Case Else" & vbCrLf & vbCrLf &
             "4. NESTED DECISIONS:" & vbCrLf &
             "   An If or Select block placed inside another branch to perform" & vbCrLf &
-            "   secondary qualifications (e.g., Honor qualification checking)."
+            "   secondary qualifications (e.g., the practice honors check)." & vbCrLf & vbCrLf &
+            "5. SHORT-CIRCUIT LOGIC:" & vbCrLf &
+            "   The grade input check uses OrElse. If parsing fails, the range check is skipped."
 
         txtLoopTheory.Text =
             "WEEK 6: REPETITION STRUCTURES (LOOPS)" & vbCrLf &
@@ -53,7 +58,9 @@
             "4. LOOP CONTROL FLOW:" & vbCrLf &
             "   • Exit For / Exit Do: Immediately breaks out of the loop cycle." & vbCrLf &
             "   • Continue For / Continue Do: Skips remainder of current pass" & vbCrLf &
-            "     and immediately proceeds to the next iteration."
+            "     and immediately proceeds to the next iteration." & vbCrLf &
+            "   • Try While with Start 1, End 5, Step 1. Continue While skips 2 and 4." & vbCrLf &
+            "The trace supports up to " & MaxLoopPasses.ToString() & " passes. Use a smaller range or a larger step."
 
         txtStringTheory.Text =
             "STRING & DATE PROCESSING IN LOOPS" & vbCrLf &
@@ -67,7 +74,7 @@
             "   • .Substring(start, length): Extract sub-sequences." & vbCrLf &
             "   • .IndexOf(char): Find position of target character." & vbCrLf & vbCrLf &
             "3. DATE ITERATIONS:" & vbCrLf &
-            "   • DateTime.Now.AddDays(n): Increment date by n days in a loop." & vbCrLf &
+            "   • DateTime.Today.AddDays(n): Advance a date by n days in a loop." & vbCrLf &
             "   • .ToString(""ddd, MMM dd, yyyy""): Format date tokens cleanly."
     End Sub
 
@@ -112,18 +119,18 @@
             End If
         Else
             ' -----------------------------------------------------
-            ' Demonstration: Select Case with Range & Relational
+            ' Demonstration: Select Case with Descending Lower Bounds
             ' -----------------------------------------------------
             Select Case grade
-                Case 97D To 100D : qcuPoint = "1.00" : remarks = "Excellent"
-                Case 94D To 96.99D : qcuPoint = "1.25" : remarks = "Very Good"
-                Case 91D To 93.99D : qcuPoint = "1.50" : remarks = "Very Good"
-                Case 88D To 90.99D : qcuPoint = "1.75" : remarks = "Good"
-                Case 85D To 87.99D : qcuPoint = "2.00" : remarks = "Good"
-                Case 82D To 84.99D : qcuPoint = "2.25" : remarks = "Satisfactory"
-                Case 79D To 81.99D : qcuPoint = "2.50" : remarks = "Satisfactory"
-                Case 76D To 78.99D : qcuPoint = "2.75" : remarks = "Fair"
-                Case 75D To 75.99D : qcuPoint = "3.00" : remarks = "Passed"
+                Case Is >= 97D : qcuPoint = "1.00" : remarks = "Excellent"
+                Case Is >= 94D : qcuPoint = "1.25" : remarks = "Very Good"
+                Case Is >= 91D : qcuPoint = "1.50" : remarks = "Very Good"
+                Case Is >= 88D : qcuPoint = "1.75" : remarks = "Good"
+                Case Is >= 85D : qcuPoint = "2.00" : remarks = "Good"
+                Case Is >= 82D : qcuPoint = "2.25" : remarks = "Satisfactory"
+                Case Is >= 79D : qcuPoint = "2.50" : remarks = "Satisfactory"
+                Case Is >= 76D : qcuPoint = "2.75" : remarks = "Fair"
+                Case Is >= 75D : qcuPoint = "3.00" : remarks = "Passed"
                 Case Else : qcuPoint = "5.00" : remarks = "Failed"
             End Select
         End If
@@ -141,12 +148,12 @@
             "DECISION EVALUATION TRACE:" & vbCrLf &
             "--------------------------------------------------" & vbCrLf &
             "Engine: " & cboDecisionMode.SelectedItem.ToString() & vbCrLf &
-            "Numerical Grade: " & grade.ToString("F2") & "%" & vbCrLf &
-            "QCU Point Equivalent: " & qcuPoint & vbCrLf &
+            "Numerical Grade: " & grade.ToString("G29") & "%" & vbCrLf &
+            "Practice Grade Point: " & qcuPoint & vbCrLf &
             "Academic Status: " & remarks & vbCrLf &
-            "Honors Standing: " & honors & vbCrLf &
+            "Example Honors Decision: " & honors & vbCrLf &
             "--------------------------------------------------" & vbCrLf &
-            "Branch Executed: Case/Block for Grade " & grade.ToString("F1")
+            "Branch Executed: Case/Block for Grade " & grade.ToString("G29")
     End Sub
 
     ' =========================================================
@@ -168,59 +175,89 @@
             Return
         End If
 
-        Dim sum As Integer = 0
+        ' Widen before negating, subtracting bounds, or advancing the final counter.
+        Dim first As Long = startVal
+        Dim last As Long = endVal
+        Dim stepSize As Long = stepVal
+        Dim mode As Integer = cboLoopType.SelectedIndex
+        If mode = 1 Then
+            first = Math.Max(startVal, endVal)
+            last = Math.Min(startVal, endVal)
+            stepSize = -Math.Abs(stepSize)
+        End If
+
+        Dim passCount As Long = 0
+        If IsWithinLoopBounds(first, last, stepSize) Then
+            passCount = Math.Abs(last - first) \ Math.Abs(stepSize) + 1
+        ElseIf mode = 3 Then
+            passCount = 1 ' A post-test loop runs once even when the initial value is outside the range.
+        End If
+        If passCount > MaxLoopPasses Then
+            lstLoopResults.Items.Add("This range exceeds " & MaxLoopPasses.ToString() &
+                                     " passes. Choose a smaller range or a larger step.")
+            Return
+        End If
+
+        Dim sum As Long = 0
         Dim count As Integer = 0
+        Dim recordValue As Action(Of Long) =
+            Sub(value As Long)
+                count += 1
+                sum += value
+                lstLoopResults.Items.Add("Pass #" & count & ": value = " & value & " | Subtotal = " & sum)
+            End Sub
 
-        Select Case cboLoopType.SelectedIndex
-            Case 0 ' For...Next Loop
-                lstLoopResults.Items.Add("-- Executing For...Next Loop --")
-                For i As Integer = startVal To endVal Step stepVal
-                    If chkUseBreak.Checked AndAlso i = 7 Then
-                        lstLoopResults.Items.Add(">> Exit For triggered at i = 7 <<")
-                        Exit For
-                    End If
-                    sum += i
-                    count += 1
-                    lstLoopResults.Items.Add("Pass #" & count & ": i = " & i & " | Subtotal = " & sum)
+        lstLoopResults.Items.Add("-- Executing " & cboLoopType.Text & " --")
+        Select Case mode
+            Case 0, 1
+                For counter As Long = first To last Step stepSize
+                    If ShouldExitLoop(counter, "Exit For") Then Exit For
+                    recordValue(counter)
                 Next
 
-            Case 1 ' For...Next (Negative Step count down)
-                lstLoopResults.Items.Add("-- Executing Reverse For...Next Loop --")
-                Dim actualStep As Integer = -Math.Abs(stepVal)
-                For i As Integer = Math.Max(startVal, endVal) To Math.Min(startVal, endVal) Step actualStep
-                    sum += i
-                    count += 1
-                    lstLoopResults.Items.Add("Countdown #" & count & ": value = " & i & " | Subtotal = " & sum)
-                Next
-
-            Case 2 ' Do While...Loop (Pre-Test)
-                lstLoopResults.Items.Add("-- Executing Do While...Loop (Pre-Test) --")
-                Dim curr As Integer = startVal
-                Do While curr <= endVal
-                    If chkUseBreak.Checked AndAlso curr = 7 Then
-                        lstLoopResults.Items.Add(">> Exit Do triggered at curr = 7 <<")
-                        Exit Do
-                    End If
-                    sum += curr
-                    count += 1
-                    lstLoopResults.Items.Add("Iteration #" & count & ": curr = " & curr & " | Subtotal = " & sum)
-                    curr += stepVal
+            Case 2
+                Dim current As Long = first
+                Do While IsWithinLoopBounds(current, last, stepSize)
+                    If ShouldExitLoop(current, "Exit Do") Then Exit Do
+                    recordValue(current)
+                    current += stepSize
                 Loop
 
-            Case 3 ' Do...Loop Until (Post-Test)
-                lstLoopResults.Items.Add("-- Executing Do...Loop Until (Post-Test) --")
-                Dim curr As Integer = startVal
+            Case 3
+                Dim current As Long = first
                 Do
-                    sum += curr
-                    count += 1
-                    lstLoopResults.Items.Add("Pass #" & count & ": curr = " & curr & " (Guaranteed >= 1 pass)")
-                    curr += stepVal
-                Loop Until curr > endVal
+                    If ShouldExitLoop(current, "Exit Do") Then Exit Do
+                    recordValue(current)
+                    current += stepSize
+                Loop Until Not IsWithinLoopBounds(current, last, stepSize)
+
+            Case 4
+                Dim current As Long = first
+                While IsWithinLoopBounds(current, last, stepSize)
+                    If ShouldExitLoop(current, "Exit While") Then Exit While
+                    If current Mod 2 = 0 Then
+                        lstLoopResults.Items.Add("Continue While skipped " & current)
+                        current += stepSize
+                        Continue While
+                    End If
+                    recordValue(current)
+                    current += stepSize
+                End While
         End Select
 
         lstLoopResults.Items.Add("-----------------------------------------")
-        lstLoopResults.Items.Add("Completed: " & count & " total iterations | Grand Sum = " & sum)
+        lstLoopResults.Items.Add("Values added: " & count & " | Grand Sum = " & sum)
     End Sub
+
+    Private Shared Function IsWithinLoopBounds(value As Long, last As Long, stepSize As Long) As Boolean
+        Return If(stepSize > 0, value <= last, value >= last)
+    End Function
+
+    Private Function ShouldExitLoop(value As Long, statement As String) As Boolean
+        If Not chkUseBreak.Checked OrElse value <> 7 Then Return False
+        lstLoopResults.Items.Add(statement & " triggered at value 7.")
+        Return True
+    End Function
 
     ' =========================================================
     ' TAB 3: STRING & DATE PROCESSING IN LOOPS
@@ -253,17 +290,21 @@
             End If
         Next
 
-        ' Reverse string using a countdown loop
-        Dim reversed As String = ""
-        For i As Integer = input.Length - 1 To 0 Step -1
-            reversed &= input(i)
+        ' Reverse text elements so an accent or surrogate pair stays with its character.
+        Dim offsets As Integer() = Globalization.StringInfo.ParseCombiningCharacters(input)
+        Dim reversedText As New System.Text.StringBuilder(input.Length)
+        Dim nextOffset As Integer = input.Length
+        For i As Integer = offsets.Length - 1 To 0 Step -1
+            reversedText.Append(input, offsets(i), nextOffset - offsets(i))
+            nextOffset = offsets(i)
         Next
+        Dim reversed As String = reversedText.ToString()
 
         txtStringOutput.Text =
             "STRING ANALYSIS REPORT (For Each Loop):" & vbCrLf &
             "==================================================" & vbCrLf &
             "Input Text: """ & input & """" & vbCrLf &
-            "Total Length: " & input.Length & " characters" & vbCrLf &
+            "Total Length: " & offsets.Length & " text elements" & vbCrLf &
             "Vowels: " & vowelsCount & vbCrLf &
             "Consonants: " & consonantsCount & vbCrLf &
             "Digits: " & digitsCount & vbCrLf &
@@ -280,6 +321,7 @@
         sb.AppendLine("DATE SCHEDULER (Looping DateTime.AddDays):")
         sb.AppendLine("==================================================")
         sb.AppendLine("Starting Base Date: " & startDate.ToString("dddd, MMMM dd, yyyy"))
+        sb.AppendLine("Local Time: " & DateTime.Now.ToString("T"))
         sb.AppendLine()
 
         For dayOffset As Integer = 1 To days

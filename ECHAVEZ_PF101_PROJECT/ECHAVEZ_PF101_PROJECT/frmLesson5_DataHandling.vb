@@ -24,7 +24,7 @@
             "- (Subtraction)",
             "* (Multiplication)",
             "/ (Floating-point Division)",
-            "\ (Integer Division - Truncates decimal)",
+            "\ (Integer Division)",
             "Mod (Modulus - Remainder of division)",
             "^ (Exponentiation - Power of)",
             "& (String Concatenation)"
@@ -64,7 +64,10 @@
             "   Accessible only inside the procedure, BUT preserves its value across calls." & vbCrLf & vbCrLf &
             "4. MODULE / CLASS SCOPE (FIELDS):" & vbCrLf &
             "   Declared at the top of the Class with 'Private'." & vbCrLf &
-            "   Accessible to any Sub or Function in the entire form class."
+            "   Accessible to any Sub or Function in the entire form class." & vbCrLf & vbCrLf &
+            "5. NAMED CONSTANTS AND DIRECTIVES:" & vbCrLf &
+            "   Example: Private Const FoodScore As Integer = 10 in the Catch Game." & vbCrLf &
+            "   Const fixes a value. Private controls access. #Const and #If control conditional compilation."
 
         txtOperatorTheory.Text =
             "VB.NET OPERATOR HIERARCHY & ARITHMETIC" & vbCrLf &
@@ -74,7 +77,8 @@
             "   • * , / : Multiplication & Floating division" & vbCrLf &
             "   • \  : Integer division (e.g., 15 \ 4 = 3)" & vbCrLf &
             "   • Mod: Modulus / Remainder (e.g., 15 Mod 4 = 3)" & vbCrLf &
-            "   • + , - : Addition & Subtraction" & vbCrLf & vbCrLf &
+            "   • + , - : Addition & Subtraction" & vbCrLf &
+            "   Compare 2 + 3 * 4 = 14 with (2 + 3) * 4 = 20. Parentheses change precedence." & vbCrLf & vbCrLf &
             "2. STRING CONCATENATION:" & vbCrLf &
             "   • & : Preferred string operator (forces string conversion)" & vbCrLf &
             "   • + : Ambiguous when mixing numeric strings and numbers" & vbCrLf & vbCrLf &
@@ -87,7 +91,7 @@
     ' TAB 1: TYPE CONVERSION ENGINE
     ' =========================================================
     Private Sub btnConvertType_Click(sender As Object, e As EventArgs) Handles btnConvertType.Click
-        Dim input As String = txtRawInput.Text.Trim()
+        Dim input As String = If(cboTargetType.SelectedIndex = 5, txtRawInput.Text, txtRawInput.Text.Trim())
         Dim outText As String = "Input: """ & input & """" & vbCrLf & vbCrLf
 
         Select Case cboTargetType.SelectedIndex
@@ -151,7 +155,7 @@
                 If Char.TryParse(input, result) Then
                     outText &= "Status: SUCCESS" & vbCrLf &
                                "Converted Value: '" & result & "'" & vbCrLf &
-                               "ASCII Code: " & AscW(result).ToString() & vbCrLf &
+                               "UTF-16 Code Unit: U+" & Convert.ToInt32(result).ToString("X4") & vbCrLf &
                                ".NET Type: System.Char (2 Bytes)"
                 Else
                     outText &= "Status: PARSE FAILED" & vbCrLf & "Reason: Value must be exactly one character long."
@@ -172,11 +176,18 @@
     End Sub
 
     Private Sub btnStaticVar_Click(sender As Object, e As EventArgs) Handles btnStaticVar.Click
-        ' Static local variable: retains its value between procedure calls
-        Static staticCounter As Integer = 0
-        staticCounter += 1
-        lblStaticCount.Text = "Static Local Variable: " & staticCounter.ToString() & " (Remembers previous state)"
+        lblStaticCount.Text = "Static Local Variable: " & UpdateStaticCounter(False).ToString()
     End Sub
+
+    Private Function UpdateStaticCounter(reset As Boolean) As Integer
+        Static staticCounter As Integer
+        If reset Then
+            staticCounter = 0
+        Else
+            staticCounter += 1
+        End If
+        Return staticCounter
+    End Function
 
     Private Sub btnClassVar_Click(sender As Object, e As EventArgs) Handles btnClassVar.Click
         ' Class-level private variable: alive as long as this form is open
@@ -187,23 +198,29 @@
     Private Sub btnResetCounters_Click(sender As Object, e As EventArgs) Handles btnResetCounters.Click
         classLevelCounter = 0
         lblLocalCount.Text = "Procedure Local (Dim): 0"
-        lblStaticCount.Text = "Static Local Variable: 0"
+        lblStaticCount.Text = "Static Local Variable: " & UpdateStaticCounter(True).ToString()
         lblClassCount.Text = "Form Field (Private): 0"
-        MessageBox.Show("Counters reset. Note: Static local variable will retain state until application restarts or resets via routine.", "Reset", MessageBoxButtons.OK, MessageBoxIcon.Information)
     End Sub
 
     ' =========================================================
     ' TAB 3: OPERATOR EVALUATOR
     ' =========================================================
     Private Sub btnCalculateExpression_Click(sender As Object, e As EventArgs) Handles btnCalculateExpression.Click
-        Dim a, b As Double
-
-        If Not Double.TryParse(txtOperandA.Text, a) OrElse Not Double.TryParse(txtOperandB.Text, b) Then
-            MessageBox.Show("Please enter valid numeric values for Operand A and Operand B.", "Input Error", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+        Dim operation As Integer = cboOperator.SelectedIndex
+        If operation = 7 Then
+            lblExpressionResult.Text = "Result: """ & txtOperandA.Text & """ & """ & txtOperandB.Text &
+                                       """ = """ & (txtOperandA.Text & txtOperandB.Text) & """"
             Return
         End If
 
-        Select Case cboOperator.SelectedIndex
+        Dim a, b As Double
+        If Not Double.TryParse(txtOperandA.Text, a) OrElse Not Double.TryParse(txtOperandB.Text, b) OrElse
+           Double.IsNaN(a) OrElse Double.IsNaN(b) OrElse Double.IsInfinity(a) OrElse Double.IsInfinity(b) Then
+            MessageBox.Show("Enter two finite numeric operands.", "Input Error", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Return
+        End If
+
+        Select Case operation
             Case 0 ' +
                 lblExpressionResult.Text = "Result: " & a.ToString() & " + " & b.ToString() & " = " & (a + b).ToString()
             Case 1 ' -
@@ -216,24 +233,24 @@
                 Else
                     lblExpressionResult.Text = "Result: " & a.ToString() & " / " & b.ToString() & " = " & (a / b).ToString("N4")
                 End If
-            Case 4 ' \ (Integer Division)
-                If CInt(b) = 0 Then
-                    lblExpressionResult.Text = "Result: Division by zero is undefined."
+            Case 4, 5 ' Integer Division and Modulus
+                Dim roundedA As Double = Math.Round(a, MidpointRounding.ToEven)
+                Dim roundedB As Double = Math.Round(b, MidpointRounding.ToEven)
+                If roundedA < Integer.MinValue OrElse roundedA > Integer.MaxValue OrElse
+                   roundedB < Integer.MinValue OrElse roundedB > Integer.MaxValue Then
+                    lblExpressionResult.Text = "Result: Rounded operands must fit in a 32-bit Integer."
+                ElseIf roundedB = 0 Then
+                    lblExpressionResult.Text = "Result: Division by zero after rounding."
                 Else
-                    Dim intResult As Integer = CInt(a) \ CInt(b)
-                    lblExpressionResult.Text = "Result (Integer Div \): " & CInt(a).ToString() & " \ " & CInt(b).ToString() & " = " & intResult.ToString()
-                End If
-            Case 5 ' Mod
-                If CInt(b) = 0 Then
-                    lblExpressionResult.Text = "Result: Division by zero is undefined."
-                Else
-                    Dim modResult As Integer = CInt(a) Mod CInt(b)
-                    lblExpressionResult.Text = "Result (Modulus): " & CInt(a).ToString() & " Mod " & CInt(b).ToString() & " = " & modResult.ToString()
+                    Dim left As Long = CLng(roundedA)
+                    Dim right As Long = CLng(roundedB)
+                    Dim symbol As String = If(operation = 4, "\", "Mod")
+                    Dim result As Long = If(operation = 4, left \ right, left Mod right)
+                    lblExpressionResult.Text = "Result: " & left.ToString() & " " & symbol & " " &
+                                               right.ToString() & " = " & result.ToString()
                 End If
             Case 6 ' ^
                 lblExpressionResult.Text = "Result: " & a.ToString() & " ^ " & b.ToString() & " = " & (a ^ b).ToString()
-            Case 7 ' &
-                lblExpressionResult.Text = "Result: """ & txtOperandA.Text & """ & """ & txtOperandB.Text & """ = """ & (txtOperandA.Text & txtOperandB.Text) & """"
         End Select
     End Sub
 

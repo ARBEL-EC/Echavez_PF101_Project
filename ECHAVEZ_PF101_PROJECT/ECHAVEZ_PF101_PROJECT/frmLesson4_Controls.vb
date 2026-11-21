@@ -41,7 +41,7 @@
             "   • AddHandler object.Event, AddressOf MethodName: Attaches events dynamically." & vbCrLf &
             "   • RemoveHandler object.Event, AddressOf MethodName: Detaches events to prevent memory leaks."
 
-        ' 3. Add a programmatic "Launch / Reset Test Window" button directly under TopMost
+        ' Make the separate test window available from a visible layout row.
         CreateTestWindowButton()
     End Sub
 
@@ -66,28 +66,35 @@
             lblMsg.Font = New Font("Segoe UI", 9.5F, FontStyle.Regular)
             testWindow.Controls.Add(lblMsg)
 
-            testWindow.Show()
+            testWindow.FormBorderStyle = SelectedBorderStyle()
+            testWindow.Opacity = Math.Max(0.1, tbOpacity.Value / 100.0)
+            testWindow.TopMost = chkTopMost.Checked
+            testWindow.Show(TopLevelControl)
         End If
         Return testWindow
     End Function
 
     Private Sub CreateTestWindowButton()
-        Dim btnOpen As New Button()
-        btnOpen.Text = "Spawn Live Test Window"
-        btnOpen.Size = New Size(190, 32)
-        btnOpen.Location = New Point(chkTopMost.Left, chkTopMost.Bottom + 14)
-        btnOpen.Cursor = Cursors.Hand
-        ThemeManager.ApplyTheme(btnOpen)
+        Dim btnOpen As New Button With {
+            .Name = "btnOpenTestWindow",
+            .Text = "Open Live Test Window",
+            .AutoSize = True,
+            .MinimumSize = New Size(190, 34),
+            .Anchor = AnchorStyles.Left,
+            .Margin = New Padding(6),
+            .TabIndex = 5,
+            .Cursor = Cursors.Hand
+        }
 
         AddHandler btnOpen.Click, Sub(s, e)
                                       Dim tw = GetOrCreateTestWindow()
                                       tw.BringToFront()
                                   End Sub
 
-        ' Add to the same group container as chkTopMost
-        If chkTopMost.Parent IsNot Nothing Then
-            chkTopMost.Parent.Controls.Add(btnOpen)
-        End If
+        propertyLayout.RowCount += 1
+        propertyLayout.RowStyles.Add(New RowStyle(SizeType.AutoSize))
+        propertyLayout.Controls.Add(btnOpen, 0, propertyLayout.RowCount - 1)
+        ThemeManager.ApplyTheme(btnOpen)
     End Sub
 
     ' Opacity manipulation (10% to 100%)
@@ -100,18 +107,22 @@
     End Sub
 
     ' Border style manipulation
-    Private Sub cboBorderStyle_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cboBorderStyle.SelectedIndexChanged
+    Private Sub cboBorderStyle_SelectionChangeCommitted(sender As Object, e As EventArgs) Handles cboBorderStyle.SelectionChangeCommitted
         Dim tw = GetOrCreateTestWindow()
 
-        Select Case cboBorderStyle.SelectedIndex
-            Case 0 : tw.FormBorderStyle = FormBorderStyle.Sizable
-            Case 1 : tw.FormBorderStyle = FormBorderStyle.FixedSingle
-            Case 2 : tw.FormBorderStyle = FormBorderStyle.Fixed3D
-            Case 3 : tw.FormBorderStyle = FormBorderStyle.FixedDialog
-            Case 4 : tw.FormBorderStyle = FormBorderStyle.FixedToolWindow
-            Case 5 : tw.FormBorderStyle = FormBorderStyle.None
-        End Select
+        tw.FormBorderStyle = SelectedBorderStyle()
     End Sub
+
+    Private Function SelectedBorderStyle() As FormBorderStyle
+        Select Case cboBorderStyle.SelectedIndex
+            Case 1 : Return FormBorderStyle.FixedSingle
+            Case 2 : Return FormBorderStyle.Fixed3D
+            Case 3 : Return FormBorderStyle.FixedDialog
+            Case 4 : Return FormBorderStyle.FixedToolWindow
+            Case 5 : Return FormBorderStyle.None
+            Case Else : Return FormBorderStyle.Sizable
+        End Select
+    End Function
 
     ' TopMost manipulation
     Private Sub chkTopMost_CheckedChanged(sender As Object, e As EventArgs) Handles chkTopMost.CheckedChanged

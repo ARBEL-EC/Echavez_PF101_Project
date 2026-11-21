@@ -280,7 +280,7 @@ Public Module ThemeManager
         ApplyFont(f, False)
         EnableDoubleBuffer(f)
 
-        If Not f.TopLevel Then
+        If Not f.TopLevel AndAlso f.MdiParent Is Nothing Then
             f.FormBorderStyle = FormBorderStyle.None
             f.ControlBox = False
             f.MaximizeBox = False
@@ -291,7 +291,7 @@ Public Module ThemeManager
             If TryHook(f, "embedded_border_lock") Then
                 AddHandler f.Layout, Sub(sender As Object, e As LayoutEventArgs)
                                          Dim emb = TryCast(sender, Form)
-                                         If emb IsNot Nothing AndAlso Not emb.TopLevel Then
+                                         If emb IsNot Nothing AndAlso Not emb.TopLevel AndAlso emb.MdiParent Is Nothing Then
                                              If emb.FormBorderStyle <> FormBorderStyle.None Then
                                                  emb.FormBorderStyle = FormBorderStyle.None
                                              End If
