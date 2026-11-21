@@ -1,0 +1,71 @@
+F:\PROJECT FOLDER\ECHAVEZ_PF101_PROJECT\ECHAVEZ_PF101_PROJECT\obj\Debug\ECHAVEZ_PF101_PROJECT.vbproj.AssemblyReference.cache
+F:\PROJECT FOLDER\ECHAVEZ_PF101_PROJECT\ECHAVEZ_PF101_PROJECT\obj\Debug\ECHAVEZ_PF101_PROJECT.frmClassesObjects.resources
+F:\PROJECT FOLDER\ECHAVEZ_PF101_PROJECT\ECHAVEZ_PF101_PROJECT\obj\Debug\ECHAVEZ_PF101_PROJECT.frmMain.resources
+F:\PROJECT FOLDER\ECHAVEZ_PF101_PROJECT\ECHAVEZ_PF101_PROJECT\obj\Debug\ECHAVEZ_PF101_PROJECT.Resources.resources
+F:\PROJECT FOLDER\ECHAVEZ_PF101_PROJECT\ECHAVEZ_PF101_PROJECT\obj\Debug\ECHAVEZ_PF101_PROJECT.vbproj.GenerateResource.cache
+F:\PROJECT FOLDER\ECHAVEZ_PF101_PROJECT\ECHAVEZ_PF101_PROJECT\obj\Debug\ECHAVEZ_PF101_PROJECT.vbproj.CoreCompileInputs.cache
+F:\PROJECT FOLDER\ECHAVEZ_PF101_PROJECT\ECHAVEZ_PF101_PROJECT\bin\Debug\ECHAVEZ_PF101_PROJECT.exe.config
+F:\PROJECT FOLDER\ECHAVEZ_PF101_PROJECT\ECHAVEZ_PF101_PROJECT\bin\Debug\ECHAVEZ_PF101_PROJECT.exe
+F:\PROJECT FOLDER\ECHAVEZ_PF101_PROJECT\ECHAVEZ_PF101_PROJECT\bin\Debug\ECHAVEZ_PF101_PROJECT.pdb
+F:\PROJECT FOLDER\ECHAVEZ_PF101_PROJECT\ECHAVEZ_PF101_PROJECT\bin\Debug\ECHAVEZ_PF101_PROJECT.xml
+F:\PROJECT FOLDER\ECHAVEZ_PF101_PROJECT\ECHAVEZ_PF101_PROJECT\obj\Debug\ECHAVEZ_PF101_PROJECT.exe
+F:\PROJECT FOLDER\ECHAVEZ_PF101_PROJECT\ECHAVEZ_PF101_PROJECT\obj\Debug\ECHAVEZ_PF101_PROJECT.xml
+F:\PROJECT FOLDER\ECHAVEZ_PF101_PROJECT\ECHAVEZ_PF101_PROJECT\obj\Debug\ECHAVEZ_PF101_PROJECT.pdb
+F:\PROJECT FOLDER\ECHAVEZ_PF101_PROJECT\ECHAVEZ_PF101_PROJECT\obj\Debug\ECHAVEZ_PF101_PROJECT.frmEncapsulation.resources
+F:\PROJECT FOLDER\ECHAVEZ_PF101_PROJECT\ECHAVEZ_PF101_PROJECT\obj\Debug\ECHAVEZ_PF101_PROJECT.frmInheritance.resources
+F:\PROJECT FOLDER\ECHAVEZ_PF101_PROJECT\ECHAVEZ_PF101_PROJECT\obj\Debug\ECHAVEZ_PF101_PROJECT.frmPolymorphism.resources
+F:\PROJECT FOLDER\ECHAVEZ_PF101_PROJECT\ECHAVEZ_PF101_PROJECT\obj\Debug\ECHAVEZ_PF101_PROJECT.frmOrientations.resources
+F:\PROJECT FOLDER\ECHAVEZ_PF101_PROJECT\ECHAVEZ_PF101_PROJECT\obj\Debug\ECHAVEZ_PF101_PROJECT.frmLesson3_IDE.resources
+F:\PROJECT FOLDER\ECHAVEZ_PF101_PROJECT\ECHAVEZ_PF101_PROJECT\obj\Debug\ECHAVEZ_PF101_PROJECT.frmLesson4_Controls.resources
+F:\PROJECT FOLDER\ECHAVEZ_PF101_PROJECT\ECHAVEZ_PF101_PROJECT\obj\Debug\ECHAVEZ_PF101_PROJECT.frmLesson5_DataHandling.resources
+F:\PROJECT FOLDER\ECHAVEZ_PF101_PROJECT\ECHAVEZ_PF101_PROJECT\obj\Debug\ECHAVEZ_PF101_PROJECT.frmLesson6_SelectionRepetition.resources
+C:\Users\arlve\.copilot\session-state\9b5f7e26-24bb-4528-b8f6-90a5a52165b7\files\build-output\ECHAVEZ_PF101_PROJECT.exe.config
+C:\Users\arlve\.copilot\session-state\9b5f7e26-24bb-4528-b8f6-90a5a52165b7\files\build-output\ECHAVEZ_PF101_PROJECT.exe
+C:\Users\arlve\.copilot\session-state\9b5f7e26-24bb-4528-b8f6-90a5a52165b7\files\build-output\ECHAVEZ_PF101_PROJECT.pdb
+C:\Users\arlve\.copilot\session-state\9b5f7e26-24bb-4528-b8f6-90a5a52165b7\files\build-output\ECHAVEZ_PF101_PROJECT.xml
+F:\PROJECT FOLDER\ECHAVEZ_PF101_PROJECT\ECHAVEZ_PF101_PROJECT\obj\Debug\ECHAVEZ_PF101_PROJECT.frmCatchGame.resources
+F:\PROJECT FOLDER\ECHAVEZ_PF101_PROJECT\ECHAVEZ_PF101_PROJECT\bin\Debug\Assets\Bomb.png
+F:\PROJECT FOLDER\ECHAVEZ_PF101_PROJECT\ECHAVEZ_PF101_PROJECT\bin\Debug\Assets\food.png
+C:\Users\arlve\AppData\Local\Temp\catch-game-build-output\Assets\Bomb.png
+C:\Users\arlve\AppData\Local\Temp\catch-game-build-output\Assets\food.png
+C:\Users\arlve\AppData\Local\Temp\catch-game-build-output\ECHAVEZ_PF101_PROJECT.exe.config
+C:\Users\arlve\AppData\Local\Temp\catch-game-build-output\ECHAVEZ_PF101_PROJECT.exe
+C:\Users\arlve\AppData\Local\Temp\catch-game-build-output\ECHAVEZ_PF101_PROJECT.pdb
+C:\Users\arlve\AppData\Local\Temp\catch-game-build-output\ECHAVEZ_PF101_PROJECT.xml
+C:\Users\arlve\AppData\Local\Temp\overview-background-build-output\Assets\background.gif
+C:\Users\arlve\AppData\Local\Temp\overview-background-build-output\Assets\Bomb.png
+C:\Users\arlve\AppData\Local\Temp\overview-background-build-output\Assets\food.png
+C:\Users\arlve\AppData\Local\Temp\overview-background-build-output\ECHAVEZ_PF101_PROJECT.exe.config
+C:\Users\arlve\AppData\Local\Temp\overview-background-build-output\ECHAVEZ_PF101_PROJECT.exe
+C:\Users\arlve\AppData\Local\Temp\overview-background-build-output\ECHAVEZ_PF101_PROJECT.pdb
+C:\Users\arlve\AppData\Local\Temp\overview-background-build-output\ECHAVEZ_PF101_PROJECT.xml
+F:\PROJECT FOLDER\ECHAVEZ_PF101_PROJECT\ECHAVEZ_PF101_PROJECT\bin\Debug\Assets\background.gif
+F:\PROJECT FOLDER\ECHAVEZ_PF101_PROJECT\ECHAVEZ_PF101_PROJECT\bin\Debug\Assets\player.png
+C:\Users\arlve\AppData\Local\Temp\global-background-build-output\Assets\background.gif
+C:\Users\arlve\AppData\Local\Temp\global-background-build-output\Assets\Bomb.png
+C:\Users\arlve\AppData\Local\Temp\global-background-build-output\Assets\food.png
+C:\Users\arlve\AppData\Local\Temp\global-background-build-output\Assets\player.png
+C:\Users\arlve\AppData\Local\Temp\global-background-build-output\ECHAVEZ_PF101_PROJECT.exe.config
+C:\Users\arlve\AppData\Local\Temp\global-background-build-output\ECHAVEZ_PF101_PROJECT.exe
+C:\Users\arlve\AppData\Local\Temp\global-background-build-output\ECHAVEZ_PF101_PROJECT.pdb
+C:\Users\arlve\AppData\Local\Temp\global-background-build-output\ECHAVEZ_PF101_PROJECT.xml
+C:\Users\arlve\AppData\Local\Temp\stable-global-background-build-output\Assets\background.gif
+C:\Users\arlve\AppData\Local\Temp\stable-global-background-build-output\Assets\Bomb.png
+C:\Users\arlve\AppData\Local\Temp\stable-global-background-build-output\Assets\food.png
+C:\Users\arlve\AppData\Local\Temp\stable-global-background-build-output\Assets\player.png
+C:\Users\arlve\AppData\Local\Temp\stable-global-background-build-output\ECHAVEZ_PF101_PROJECT.exe.config
+C:\Users\arlve\AppData\Local\Temp\stable-global-background-build-output\ECHAVEZ_PF101_PROJECT.exe
+C:\Users\arlve\AppData\Local\Temp\stable-global-background-build-output\ECHAVEZ_PF101_PROJECT.pdb
+C:\Users\arlve\AppData\Local\Temp\stable-global-background-build-output\ECHAVEZ_PF101_PROJECT.xml
+C:\Users\arlve\.copilot\session-state\9b5f7e26-24bb-4528-b8f6-90a5a52165b7\files\build-output\Assets\background.gif
+C:\Users\arlve\.copilot\session-state\9b5f7e26-24bb-4528-b8f6-90a5a52165b7\files\build-output\Assets\Bomb.png
+C:\Users\arlve\.copilot\session-state\9b5f7e26-24bb-4528-b8f6-90a5a52165b7\files\build-output\Assets\food.png
+C:\Users\arlve\.copilot\session-state\9b5f7e26-24bb-4528-b8f6-90a5a52165b7\files\build-output\Assets\player.png
+C:\Users\arlve\AppData\Local\Temp\echavez-lesson8-validation\Assets\background.gif
+C:\Users\arlve\AppData\Local\Temp\echavez-lesson8-validation\Assets\Bomb.png
+C:\Users\arlve\AppData\Local\Temp\echavez-lesson8-validation\Assets\food.png
+C:\Users\arlve\AppData\Local\Temp\echavez-lesson8-validation\Assets\player.png
+C:\Users\arlve\AppData\Local\Temp\echavez-lesson8-validation\ECHAVEZ_PF101_PROJECT.exe.config
+C:\Users\arlve\AppData\Local\Temp\echavez-lesson8-validation\ECHAVEZ_PF101_PROJECT.exe
+C:\Users\arlve\AppData\Local\Temp\echavez-lesson8-validation\ECHAVEZ_PF101_PROJECT.pdb
+C:\Users\arlve\AppData\Local\Temp\echavez-lesson8-validation\ECHAVEZ_PF101_PROJECT.xml
