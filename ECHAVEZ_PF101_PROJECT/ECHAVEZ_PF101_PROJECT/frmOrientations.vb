@@ -97,7 +97,7 @@
                 ' QCU Grading Formula: Term Grade = (Class Standing * 60%) + (Exam * 40%)
                 Dim termGrade As Decimal = (classStanding * 0.6D) + (examScore * 0.4D)
                 lblTermResult.Text = "Term Grade: " & termGrade.ToString("N2") & "%"
-                lblTermResult.ForeColor = If(termGrade >= 75D, Color.DarkGreen, Color.Red)
+                lblTermResult.ForeColor = If(termGrade >= 75D, Color.LightGreen, Color.LightCoral)
             Else
                 MessageBox.Show("Please enter valid scores between 0 and 100.", "Range Error", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             End If
@@ -110,12 +110,17 @@
         Dim mtg, ftg As Decimal
 
         If Decimal.TryParse(txtMTG.Text, mtg) AndAlso Decimal.TryParse(txtFTG.Text, ftg) Then
+            If mtg < 0D OrElse mtg > 100D OrElse ftg < 0D OrElse ftg > 100D Then
+                MessageBox.Show("Please enter midterm and final-term grades between 0 and 100.", "Range Error",
+                                MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                Return
+            End If
             ' QCU Grading Formula: Final Grade = (MTG + FTG) / 2
             Dim finalGrade As Decimal = (mtg + ftg) / 2D
             Dim status As String = If(finalGrade >= 75D, "PASSED", "FAILED")
 
             lblFinalResult.Text = "Final Grade: " & finalGrade.ToString("N2") & "% (" & status & ")"
-            lblFinalResult.ForeColor = If(finalGrade >= 75D, Color.DarkGreen, Color.Red)
+            lblFinalResult.ForeColor = If(finalGrade >= 75D, Color.LightGreen, Color.LightCoral)
         Else
             MessageBox.Show("Please enter numeric values for both MTG and FTG.", "Input Error", MessageBoxButtons.OK, MessageBoxIcon.Warning)
         End If

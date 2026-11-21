@@ -22,9 +22,15 @@
     Private Sub btnDeposit_Click(sender As Object, e As EventArgs) Handles btnDeposit.Click
         Dim amt As Decimal
         If Decimal.TryParse(txtAmount.Text, amt) AndAlso amt > 0 Then
-            myAccount.Deposit(amt)
+            Try
+                myAccount.Deposit(amt)
+            Catch ex As OverflowException
+                MessageBox.Show("This deposit would make the balance too large.", "Amount Error",
+                                MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                Return
+            End Try
             lblStatus.Text = "Status: Successfully deposited PHP " & amt.ToString("N2")
-            lblStatus.ForeColor = Color.DarkGreen
+            lblStatus.ForeColor = Color.LightGreen
             UpdateBalanceDisplay()
             txtAmount.Clear()
         Else
@@ -37,12 +43,12 @@
         If Decimal.TryParse(txtAmount.Text, amt) AndAlso amt > 0 Then
             If myAccount.Withdraw(amt) Then
                 lblStatus.Text = "Status: Successfully withdrew PHP " & amt.ToString("N2")
-                lblStatus.ForeColor = Color.DarkGreen
+                lblStatus.ForeColor = Color.LightGreen
                 UpdateBalanceDisplay()
                 txtAmount.Clear()
             Else
                 lblStatus.Text = "Status: Insufficient balance for this withdrawal!"
-                lblStatus.ForeColor = Color.Red
+                lblStatus.ForeColor = Color.LightCoral
             End If
         Else
             MessageBox.Show("Please enter a valid positive withdrawal amount.", "Input Error", MessageBoxButtons.OK, MessageBoxIcon.Warning)
@@ -52,7 +58,7 @@
     Private Sub btnCheckBalance_Click(sender As Object, e As EventArgs) Handles btnCheckBalance.Click
         UpdateBalanceDisplay()
         lblStatus.Text = "Status: Balance refreshed."
-        lblStatus.ForeColor = Color.Navy
+        lblStatus.ForeColor = ThemeManager.ClrTextMuted
     End Sub
 
     Private Sub UpdateBalanceDisplay()

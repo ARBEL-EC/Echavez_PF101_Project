@@ -51,11 +51,17 @@
 
         ' Initialize Console Shell Display
         ResetConsoleScreen()
+        AddFollowUpLab()
     End Sub
 
     ' Update Component Description on selection change
     Private Sub lstIDEComponents_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstIDEComponents.SelectedIndexChanged
-        Select Case lstIDEComponents.SelectedItem.ToString()
+        Dim component As String = TryCast(lstIDEComponents.SelectedItem, String)
+        If component Is Nothing Then
+            txtIDEDetails.Clear()
+            Return
+        End If
+        Select Case component
             Case "Start Page"
                 txtIDEDetails.Text = "START PAGE:" & vbCrLf & vbCrLf &
                     "Provides access to recent projects, solution creation templates, and getting-started tutorials."
@@ -131,10 +137,76 @@
             "Module Module1" & vbCrLf &
             "    Sub Main()" & vbCrLf &
             "        System.Console.Write(""This is my first Console Application"")" & vbCrLf &
-            "        Read()" & vbCrLf &
+            "        System.Console.ReadLine()" & vbCrLf &
             "    End Sub" & vbCrLf &
             "End Module" & vbCrLf &
             "------------------------------------------------------------------" & vbCrLf
+    End Sub
+
+    Private Sub AddFollowUpLab()
+        Dim labTab As New TabPage("Debugging & MDI")
+        Dim launchButton As New Button With {.Text = "Open MDI Lab", .Dock = DockStyle.Fill, .Height = 36}
+        Dim notes As New TextBox With {
+            .Dock = DockStyle.Fill,
+            .Multiline = True,
+            .ReadOnly = True,
+            .ScrollBars = ScrollBars.Vertical,
+            .Text = "WEEK 10 - DEBUGGING AND TRACING" & vbCrLf & vbCrLf &
+                    "In Visual Studio, open the active nested project in Debug. Set a breakpoint in the Week 7 months button handler (F9), " &
+                    "start debugging (F5), and click Load Months. Step over array initialization (F10) and inspect months.Length " &
+                    "and months(0) in Locals or Watch. Continue with F5 and compare the ListBox with the watch value and the count in Debug Output." & vbCrLf & vbCrLf &
+                    "For structured file error handling, use Open in the Week 8 editor with a plain-text file named .rtf. " &
+                    "Set a breakpoint in ShowFileError to observe the exception type. Open a valid file to verify recovery." & vbCrLf & vbCrLf &
+                    "WEEK 11 - MULTIPLE DOCUMENT INTERFACE" & vbCrLf & vbCrLf &
+                    "Open the MDI lab, choose File > New Note twice, and type something different in each document. " &
+                    "Use the Window menu to switch between notes, cascade them, or tile them. " &
+                    "The parent owns the MenuStrip and each note is a child form with its MdiParent set."
+        }
+        Dim layout As New TableLayoutPanel With {.Dock = DockStyle.Fill, .ColumnCount = 1, .RowCount = 2, .Padding = New Padding(8)}
+        layout.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100.0F))
+        layout.RowStyles.Add(New RowStyle(SizeType.Percent, 100.0F))
+        layout.RowStyles.Add(New RowStyle(SizeType.Absolute, 48.0F))
+        layout.Controls.Add(notes, 0, 0)
+        layout.Controls.Add(launchButton, 0, 1)
+        labTab.Controls.Add(layout)
+        AddHandler launchButton.Click, AddressOf OpenMdiLab
+        TabControl1.TabPages.Add(labTab)
+        ThemeManager.ApplyTheme(labTab)
+    End Sub
+
+    Private Sub OpenMdiLab(sender As Object, e As EventArgs)
+        Using lab As New Form With {.Text = "PF101 - MDI Lab",
+                                    .IsMdiContainer = True,
+                                    .StartPosition = FormStartPosition.CenterParent,
+                                    .ClientSize = New Size(760, 470),
+                                    .ShowInTaskbar = False}
+            Dim menu As New MenuStrip()
+            Dim fileMenu As New ToolStripMenuItem("&File")
+            Dim windowMenu As New ToolStripMenuItem("&Window")
+            menu.Items.AddRange(New ToolStripItem() {fileMenu, windowMenu})
+            menu.MdiWindowListItem = windowMenu
+            lab.MainMenuStrip = menu
+            lab.Controls.Add(menu)
+
+            Dim nextNote As Integer = 0
+            Dim openNote As EventHandler =
+                Sub(item, args)
+                    nextNote += 1
+                    Dim note As New Form With {.Text = "Note " & nextNote.ToString(),
+                                               .MdiParent = lab, .ClientSize = New Size(310, 190)}
+                    note.Controls.Add(New TextBox With {.Multiline = True, .Dock = DockStyle.Fill,
+                                                        .AcceptsReturn = True, .ScrollBars = ScrollBars.Vertical})
+                    ThemeManager.ApplyTheme(note)
+                    note.Show()
+                End Sub
+
+            fileMenu.DropDownItems.Add("&New Note", Nothing, openNote)
+            fileMenu.DropDownItems.Add("Close &Active Note", Nothing, Sub(item, args) lab.ActiveMdiChild?.Close())
+            windowMenu.DropDownItems.Add("&Cascade", Nothing, Sub(item, args) lab.LayoutMdi(MdiLayout.Cascade))
+            windowMenu.DropDownItems.Add("&Tile Vertically", Nothing, Sub(item, args) lab.LayoutMdi(MdiLayout.TileVertical))
+            ThemeManager.ApplyTheme(lab)
+            lab.ShowDialog(TopLevelControl)
+        End Using
     End Sub
 
 End Class

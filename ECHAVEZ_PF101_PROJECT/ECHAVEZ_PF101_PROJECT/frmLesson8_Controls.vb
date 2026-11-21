@@ -1,4 +1,6 @@
-﻿Public Class frmLesson8_Controls
+﻿Imports System.Drawing.Printing
+
+Public Class frmLesson8_Controls
 
     Private Sub frmLesson8_Controls_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         ThemeManager.ApplyTheme(Me)
@@ -23,7 +25,7 @@
             "PrintDialog / PrintPreviewDialog" & vbCrLf &
             "Printing dialogs work with a PrintDocument. Handle its PrintPage event to draw each page, " &
             "advance through the content, and set HasMorePages when more pages remain. PrintPreviewDialog " &
-            "previews the same PrintDocument output before printing." & vbCrLf & vbCrLf &
+            "previews the same PrintDocument output before printing. Both buttons print the editor as plain text." & vbCrLf & vbCrLf &
             "2. RICHTEXTBOX VS. STANDARD TEXTBOX" & vbCrLf &
             "TextBox handles plain Unicode characters and is suitable for ordinary single-line or " &
             "multiline input. RichTextBox supports Rich Text Format (RTF), font weight variations, " &
@@ -52,11 +54,91 @@
         })
         If lstPptTopics.Items.Count > 0 Then lstPptTopics.SelectedIndex = 0
 
+        AddCourseworkControls()
         PopulateControlCategories()
         If tvControlCategories.Nodes.Count > 0 Then
             tvControlCategories.SelectedNode = tvControlCategories.Nodes(0)
             tvControlCategories.Nodes(0).Expand()
         End If
+    End Sub
+
+    Private Sub AddCourseworkControls()
+        Dim previewButton As New Button With {.Name = "btnPrintPreview", .Text = "Print Preview", .AutoSize = True, .Height = 36, .Margin = New Padding(6)}
+        Dim printButton As New Button With {.Name = "btnPrint", .Text = "Print", .AutoSize = True, .Height = 36, .Margin = New Padding(6)}
+        AddHandler previewButton.Click, Sub(sender, args) PrintEditorText(preview:=True)
+        AddHandler printButton.Click, Sub(sender, args) PrintEditorText(preview:=False)
+        editorActions.AutoScroll = True
+        editorActions.Controls.Add(previewButton)
+        editorActions.Controls.Add(printButton)
+
+        Dim viewPicker As New ComboBox With {.Name = "cboListViewMode", .Dock = DockStyle.Fill,
+                                             .DropDownStyle = ComboBoxStyle.DropDownList, .AccessibleName = "ListView mode",
+                                             .Margin = New Padding(6)}
+        viewPicker.Items.AddRange(New Object() {"Details (properties and values)", "List (property names)"})
+        AddHandler viewPicker.SelectedIndexChanged,
+            Sub(sender, args)
+                lvControlProperties.View = If(viewPicker.SelectedIndex = 0, View.Details, View.List)
+                lvControlProperties_Resize(lvControlProperties, EventArgs.Empty)
+            End Sub
+        browserLayout.RowCount = 2
+        browserLayout.RowStyles.Insert(0, New RowStyle(SizeType.AutoSize))
+        browserLayout.SetRow(lvControlProperties, 1)
+        browserLayout.SetRowSpan(tvControlCategories, 2)
+        browserLayout.Controls.Add(viewPicker, 1, 0)
+        viewPicker.SelectedIndex = 0
+        ThemeManager.ApplyTheme(editorActions)
+        ThemeManager.ApplyTheme(browserLayout)
+    End Sub
+
+    Private Sub PrintEditorText(preview As Boolean)
+        Dim textToPrint As String = rtbEditor.Text
+        If String.IsNullOrWhiteSpace(textToPrint) Then
+            lblEditorStatus.Text = "Enter text before printing."
+            Return
+        End If
+
+        Try
+            Using document As New PrintDocument(),
+                  printFont As New Font("Segoe UI", 10.0F),
+                  format As StringFormat = StringFormat.GenericTypographic
+                format.FormatFlags = format.FormatFlags Or StringFormatFlags.LineLimit
+                document.DocumentName = "PF101 Editor Text"
+                Dim offset As Integer = 0
+                AddHandler document.BeginPrint, Sub(sender, args) offset = 0
+                AddHandler document.PrintPage,
+                    Sub(sender, args)
+                        Dim remaining As String = textToPrint.Substring(offset)
+                        Dim charactersFitted As Integer
+                        Dim linesFitted As Integer
+                        args.Graphics.MeasureString(remaining, printFont, args.MarginBounds.Size, format,
+                                                    charactersFitted, linesFitted)
+                        If charactersFitted = 0 Then Throw New InvalidOperationException("The printer margins leave no room for text.")
+
+                        args.Graphics.DrawString(remaining.Substring(0, charactersFitted), printFont, Brushes.Black,
+                                                 args.MarginBounds, format)
+                        offset += charactersFitted
+                        args.HasMorePages = offset < textToPrint.Length
+                    End Sub
+
+                If preview Then
+                    Using previewDialog As New PrintPreviewDialog With {.Document = document, .Width = 900, .Height = 650}
+                        previewDialog.ShowDialog(TopLevelControl)
+                    End Using
+                Else
+                    Using printDialog As New PrintDialog With {.Document = document, .UseEXDialog = True}
+                        If printDialog.ShowDialog(TopLevelControl) <> DialogResult.OK Then Return
+                        document.Print()
+                    End Using
+                    lblEditorStatus.Text = "Sent plain text to the printer."
+                End If
+            End Using
+        Catch ex As Exception When TypeOf ex Is InvalidPrinterException OrElse
+                                   TypeOf ex Is ComponentModel.Win32Exception OrElse
+                                   TypeOf ex Is InvalidOperationException OrElse
+                                   TypeOf ex Is Runtime.InteropServices.ExternalException
+            lblEditorStatus.Text = "Printing is unavailable."
+            MessageBox.Show(Me, ex.Message, "Printing Error", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+        End Try
     End Sub
 
     Private Sub lstPptTopics_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstPptTopics.SelectedIndexChanged
@@ -155,12 +237,23 @@
 
     Private Sub btnOpenText_Click(sender As Object, e As EventArgs) Handles btnOpenText.Click
         If openTextDialog.ShowDialog(Me) <> DialogResult.OK Then Return
+        If Not ConfirmDocumentChange() Then Return
 
         Try
             Dim fileType As RichTextBoxStreamType =
                 If(String.Equals(IO.Path.GetExtension(openTextDialog.FileName), ".rtf", StringComparison.OrdinalIgnoreCase),
                    RichTextBoxStreamType.RichText, RichTextBoxStreamType.PlainText)
-            rtbEditor.LoadFile(openTextDialog.FileName, fileType)
+            ' Load into a separate control so a failed read cannot replace the current document.
+            Using stagedEditor As New RichTextBox()
+                stagedEditor.LoadFile(openTextDialog.FileName, fileType)
+                If fileType = RichTextBoxStreamType.RichText Then
+                    rtbEditor.Rtf = stagedEditor.Rtf
+                Else
+                    rtbEditor.Text = stagedEditor.Text
+                End If
+            End Using
+            rtbEditor.ClearUndo()
+            rtbEditor.Modified = False
             lblEditorStatus.Text = "Opened: " & IO.Path.GetFileName(openTextDialog.FileName)
         Catch ex As IO.IOException
             ShowFileError("The selected file could not be read.", ex)
@@ -177,9 +270,27 @@
         End Try
     End Sub
 
+    Friend Function ConfirmDocumentChange() As Boolean
+        If Not rtbEditor.Modified Then Return True
+
+        Select Case MessageBox.Show(Me, "Save your changes to the editor before continuing?",
+                                    "Unsaved Text", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning)
+            Case DialogResult.Yes
+                Return TrySaveEditor()
+            Case DialogResult.No
+                Return True
+            Case Else
+                Return False
+        End Select
+    End Function
+
     Private Sub btnSaveText_Click(sender As Object, e As EventArgs) Handles btnSaveText.Click
+        TrySaveEditor()
+    End Sub
+
+    Private Function TrySaveEditor() As Boolean
         saveTextDialog.DefaultExt = If(saveTextDialog.FilterIndex = 2, "rtf", "txt")
-        If saveTextDialog.ShowDialog(Me) <> DialogResult.OK Then Return
+        If saveTextDialog.ShowDialog(Me) <> DialogResult.OK Then Return False
 
         Try
             Dim fileName As String = saveTextDialog.FileName
@@ -190,7 +301,9 @@
                 If(String.Equals(IO.Path.GetExtension(fileName), ".rtf", StringComparison.OrdinalIgnoreCase),
                    RichTextBoxStreamType.RichText, RichTextBoxStreamType.PlainText)
             rtbEditor.SaveFile(fileName, fileType)
+            rtbEditor.Modified = False
             lblEditorStatus.Text = "Saved: " & IO.Path.GetFileName(fileName)
+            Return True
         Catch ex As IO.IOException
             ShowFileError("The file could not be saved.", ex)
         Catch ex As UnauthorizedAccessException
@@ -204,9 +317,11 @@
         Catch ex As System.Runtime.InteropServices.ExternalException
             ShowFileError("A Windows file operation error prevented the file from being saved.", ex)
         End Try
-    End Sub
+        Return False
+    End Function
 
     Private Sub ShowFileError(message As String, ex As Exception)
+        Debug.WriteLine("PF101 editor file operation failed. " & ex.GetType().Name & " " & ex.Message)
         lblEditorStatus.Text = "File operation failed."
         MessageBox.Show(message & vbCrLf & ex.Message, "File Error",
                         MessageBoxButtons.OK, MessageBoxIcon.Error)
@@ -223,6 +338,7 @@
                 rtbEditor.Font = fontPicker.Font
             End If
             rtbEditor.Focus()
+            rtbEditor.Modified = True
             lblEditorStatus.Text = "Font applied."
         End If
     End Sub
@@ -236,6 +352,7 @@
                 rtbEditor.ForeColor = colorPicker.Color
             End If
             rtbEditor.Focus()
+            rtbEditor.Modified = True
             lblEditorStatus.Text = "Text color applied."
         End If
     End Sub
@@ -404,7 +521,7 @@
     End Function
 
     Private Sub lvControlProperties_Resize(sender As Object, e As EventArgs) Handles lvControlProperties.Resize
-        If lvControlProperties.Columns.Count = 2 Then
+        If lvControlProperties.View = View.Details AndAlso lvControlProperties.Columns.Count = 2 Then
             lvControlProperties.Columns(1).Width = Math.Max(180, lvControlProperties.ClientSize.Width - lvControlProperties.Columns(0).Width - 8)
         End If
     End Sub

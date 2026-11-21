@@ -173,6 +173,10 @@ Public Class frmMain
     End Sub
 
     Private Sub frmMain_FormClosing(sender As Object, e As FormClosingEventArgs) Handles MyBase.FormClosing
+        If e.CloseReason = CloseReason.UserClosing AndAlso Not CanLeaveCurrentView() Then
+            e.Cancel = True
+            Return
+        End If
         If picBg.Image IsNot Nothing Then
             Dim backgroundImage As Image = picBg.Image
             ImageAnimator.StopAnimate(backgroundImage, AddressOf OnBackgroundFrameChanged)
@@ -188,32 +192,48 @@ Public Class frmMain
     ' =========================================================
     ' INSTANT EMBEDDED VIEW ENGINE
     ' =========================================================
-    Public Sub LoadView(childForm As Form)
-        pnlOverview.Visible = False
-        pnlContent.BackColor = Color.FromArgb(15, 17, 23)
+    Private Function CanLeaveCurrentView() As Boolean
+        Dim editor As frmLesson8_Controls = TryCast(currentLoadedForm, frmLesson8_Controls)
+        Return editor Is Nothing OrElse editor.ConfirmDocumentChange()
+    End Function
+
+    Public Sub LoadView(childForm As Form, Optional navigationButton As Button = Nothing)
+        If Not CanLeaveCurrentView() Then
+            childForm.Dispose()
+            Return
+        End If
 
         SendMessage(pnlContent.Handle, WM_SETREDRAW, False, 0)
         pnlContent.SuspendLayout()
 
         Try
-            If currentLoadedForm IsNot Nothing Then
-                pnlContent.Controls.Remove(currentLoadedForm)
-                currentLoadedForm.Dispose()
-                currentLoadedForm = Nothing
-            End If
+            Try
+                childForm.BackColor = COLOR_BG
+                childForm.ForeColor = COLOR_TEXT
+                childForm.TopLevel = False
+                childForm.FormBorderStyle = FormBorderStyle.None
+                childForm.Dock = DockStyle.Fill
+                ThemeManager.ApplyTheme(childForm)
+                pnlContent.Controls.Add(childForm)
+                childForm.Show()
+                childForm.BringToFront()
+            Catch ex As Exception
+                pnlContent.Controls.Remove(childForm)
+                childForm.Dispose()
+                MessageBox.Show(Me, "The selected view could not be opened." & vbCrLf & ex.Message,
+                                "Navigation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                Return
+            End Try
 
-            childForm.BackColor = COLOR_BG
-            childForm.ForeColor = COLOR_TEXT
-            childForm.TopLevel = False
-            childForm.FormBorderStyle = FormBorderStyle.None
-            childForm.Dock = DockStyle.Fill
-
-            ThemeManager.ApplyTheme(childForm)
-
-            pnlContent.Controls.Add(childForm)
-            childForm.Show()
-            childForm.FormBorderStyle = FormBorderStyle.None
+            pnlOverview.Visible = False
+            pnlContent.BackColor = Color.FromArgb(15, 17, 23)
+            Dim previousForm As Form = currentLoadedForm
             currentLoadedForm = childForm
+            If previousForm IsNot Nothing Then
+                pnlContent.Controls.Remove(previousForm)
+                previousForm.Dispose()
+            End If
+            If navigationButton IsNot Nothing Then SetActiveButton(navigationButton)
         Finally
             pnlContent.ResumeLayout(True)
             SendMessage(pnlContent.Handle, WM_SETREDRAW, True, 0)
@@ -225,13 +245,13 @@ Public Class frmMain
     ' NAVIGATION CLICK HANDLERS
     ' =========================================================
     Private Sub Nav_Overview_Click(sender As Object, e As EventArgs) Handles btnNavOverview.Click
+        If Not CanLeaveCurrentView() Then Return
         SetActiveButton(DirectCast(sender, Button))
         ShowOverviewDashboard()
     End Sub
 
     Private Sub Nav_Orientations_Click(sender As Object, e As EventArgs) Handles btnNavOrientations.Click
-        SetActiveButton(DirectCast(sender, Button))
-        LoadView(New frmOrientations())
+        LoadView(New frmOrientations(), DirectCast(sender, Button))
     End Sub
 
     Private Sub Nav_OOPConcepts_Click(sender As Object, e As EventArgs) Handles btnNavOOPConcepts.Click
@@ -243,58 +263,47 @@ Public Class frmMain
     End Sub
 
     Private Sub Nav_Classes_Click(sender As Object, e As EventArgs) Handles btnNavClasses.Click
-        SetActiveButton(DirectCast(sender, Button))
-        LoadView(New frmClassesObjects())
+        LoadView(New frmClassesObjects(), DirectCast(sender, Button))
     End Sub
 
     Private Sub Nav_Encapsulation_Click(sender As Object, e As EventArgs) Handles btnNavEncapsulation.Click
-        SetActiveButton(DirectCast(sender, Button))
-        LoadView(New frmEncapsulation())
+        LoadView(New frmEncapsulation(), DirectCast(sender, Button))
     End Sub
 
     Private Sub Nav_Inheritance_Click(sender As Object, e As EventArgs) Handles btnNavInheritance.Click
-        SetActiveButton(DirectCast(sender, Button))
-        LoadView(New frmInheritance())
+        LoadView(New frmInheritance(), DirectCast(sender, Button))
     End Sub
 
     Private Sub Nav_Polymorphism_Click(sender As Object, e As EventArgs) Handles btnNavPolymorphism.Click
-        SetActiveButton(DirectCast(sender, Button))
-        LoadView(New frmPolymorphism())
+        LoadView(New frmPolymorphism(), DirectCast(sender, Button))
     End Sub
 
     Private Sub Nav_Lesson3_Click(sender As Object, e As EventArgs) Handles btnNavLesson3.Click
-        SetActiveButton(DirectCast(sender, Button))
-        LoadView(New frmLesson3_IDE())
+        LoadView(New frmLesson3_IDE(), DirectCast(sender, Button))
     End Sub
 
     Private Sub Nav_Lesson4_Click(sender As Object, e As EventArgs) Handles btnNavLesson4.Click
-        SetActiveButton(DirectCast(sender, Button))
-        LoadView(New frmLesson4_Controls())
+        LoadView(New frmLesson4_Controls(), DirectCast(sender, Button))
     End Sub
 
     Private Sub Nav_Lesson5_Click(sender As Object, e As EventArgs) Handles btnNavLesson5.Click
-        SetActiveButton(DirectCast(sender, Button))
-        LoadView(New frmLesson5_DataHandling())
+        LoadView(New frmLesson5_DataHandling(), DirectCast(sender, Button))
     End Sub
 
     Private Sub Nav_Lesson6_Click(sender As Object, e As EventArgs) Handles btnNavLesson6.Click
-        SetActiveButton(DirectCast(sender, Button))
-        LoadView(New frmLesson6_SelectionRepetition())
+        LoadView(New frmLesson6_SelectionRepetition(), DirectCast(sender, Button))
     End Sub
 
     Private Sub Nav_Lesson7_Click(sender As Object, e As EventArgs) Handles btnNavLesson7.Click
-        SetActiveButton(DirectCast(sender, Button))
-        LoadView(New frmLesson7_Arrays())
+        LoadView(New frmLesson7_Arrays(), DirectCast(sender, Button))
     End Sub
 
     Private Sub Nav_Lesson8_Click(sender As Object, e As EventArgs) Handles btnNavLesson8.Click
-        SetActiveButton(DirectCast(sender, Button))
-        LoadView(New frmLesson8_Controls())
+        LoadView(New frmLesson8_Controls(), DirectCast(sender, Button))
     End Sub
 
     Private Sub Nav_Game_Click(sender As Object, e As EventArgs) Handles btnNavGame.Click
-        SetActiveButton(DirectCast(sender, Button))
-        LoadView(New frmCatchGame())
+        LoadView(New frmCatchGame(), DirectCast(sender, Button))
     End Sub
 
     ' =========================================================

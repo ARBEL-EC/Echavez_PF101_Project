@@ -629,7 +629,7 @@ Partial Class frmLesson6_SelectionRepetition
         Me.chkUseBreak.Name = "chkUseBreak"
         Me.chkUseBreak.Size = New System.Drawing.Size(426, 28)
         Me.chkUseBreak.TabIndex = 5
-        Me.chkUseBreak.Text = "Exit loop early when iteration reaches 7"
+        Me.chkUseBreak.Text = "Exit loop when the counter reaches 7"
         Me.chkUseBreak.UseVisualStyleBackColor = True
         '
         'Label5

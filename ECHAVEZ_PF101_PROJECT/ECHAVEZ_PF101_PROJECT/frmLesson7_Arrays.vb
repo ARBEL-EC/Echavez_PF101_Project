@@ -1,4 +1,6 @@
-﻿Public Class frmLesson7_Arrays
+﻿Imports System.Globalization
+
+Public Class frmLesson7_Arrays
 
     Private Sub frmLesson7_Arrays_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         ThemeManager.ApplyTheme(Me)
@@ -45,7 +47,9 @@
             "        Console.WriteLine(grid(row, column))" & vbCrLf &
             "    Next" & vbCrLf &
             "Next" & vbCrLf &
-            "Nested loops can calculate row totals, column totals, and a grand total."
+            "Nested loops can calculate row totals, column totals, and a grand total." & vbCrLf & vbCrLf &
+            "The Months ListBox has an Items collection populated from a fixed array. " &
+            "The score-search report builds a List(Of Integer) of matches as it traverses the array."
 
         lstPptTopics.Items.Clear()
         lstPptTopics.Items.AddRange(New Object() { _
@@ -58,6 +62,10 @@
         If lstPptTopics.Items.Count > 0 Then lstPptTopics.SelectedIndex = 0
 
         InitializeMatrixGrid()
+        Dim decimalSeparator As String = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator
+        txtScoresInput.AccessibleDescription = "Separate scores with spaces or semicolons. Use " &
+                                               decimalSeparator & " as the decimal separator."
+        lblScoresInput.Text = If(decimalSeparator = ",", "Scores (use ; or space)", "Scores (use , or space)")
     End Sub
 
     Private Sub lstPptTopics_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstPptTopics.SelectedIndexChanged
@@ -144,12 +152,13 @@
 
         lstMonths.Items.Clear()
         lstMonths.Items.AddRange(months)
+        Debug.WriteLine("PF101 Months Lab loaded " & months.Length.ToString() & " entries.")
         lstMonths.SelectedIndex = -1
         lblMonthSelection.Text = "Select a month to display its zero-based index."
     End Sub
 
     Private Sub btnClearMonthDisplay_Click(sender As Object, e As EventArgs) Handles btnClearMonthDisplay.Click
-        lstMonths.SelectedIndex = -1
+        lstMonths.Items.Clear()
         lblMonthSelection.Text = String.Empty
     End Sub
 
@@ -161,19 +170,22 @@
     End Sub
 
     Private Function TryReadScores(ByRef scores As Decimal()) As Boolean
-        Dim tokens As String() = txtScoresInput.Text.Split(
-            New Char() {","c, ";"c, " "c, ControlChars.Tab, ControlChars.Cr, ControlChars.Lf},
-            StringSplitOptions.RemoveEmptyEntries)
+        Dim decimalSeparator As String = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator
+        Dim separators As New List(Of Char) From {";"c, " "c, ControlChars.Tab, ControlChars.Cr, ControlChars.Lf}
+        If decimalSeparator <> "," Then separators.Add(","c)
+        Dim tokens As String() = txtScoresInput.Text.Split(separators.ToArray(), StringSplitOptions.RemoveEmptyEntries)
 
         If tokens.Length = 0 Then
-            MessageBox.Show("Enter one or more scores separated by commas, spaces, or semicolons.",
+            Dim separatorHint As String = If(decimalSeparator = ",", "spaces or semicolons", "commas, spaces, or semicolons")
+            MessageBox.Show("Enter one or more scores separated by " & separatorHint & ".",
                             "Scores Required", MessageBoxButtons.OK, MessageBoxIcon.Information)
             Return False
         End If
 
         Dim parsedScores(tokens.Length - 1) As Decimal
         For index As Integer = 0 To tokens.Length - 1
-            If Not Decimal.TryParse(tokens(index), parsedScores(index)) Then
+            If Not Decimal.TryParse(tokens(index), NumberStyles.AllowLeadingSign Or NumberStyles.AllowDecimalPoint,
+                                    CultureInfo.CurrentCulture, parsedScores(index)) Then
                 MessageBox.Show("Score '" & tokens(index) & "' is not a valid number. Correct the input and try again.",
                                 "Invalid Score", MessageBoxButtons.OK, MessageBoxIcon.Warning)
                 Return False
@@ -189,9 +201,14 @@
         If Not TryReadScores(scores) Then Return
 
         Dim total As Decimal = 0D
-        For Each score As Decimal In scores
-            total += score
-        Next
+        Try
+            For Each score As Decimal In scores
+                total += score
+            Next
+        Catch ex As OverflowException
+            txtScoreResults.Text = "The running total exceeds the Decimal range. Enter smaller values."
+            Return
+        End Try
 
         txtScoreResults.Text =
             "1D ARRAY ANALYSIS" & vbCrLf &
@@ -206,26 +223,26 @@
         If Not TryReadScores(scores) Then Return
 
         Dim target As Decimal
-        If Not Decimal.TryParse(txtSearchScore.Text, target) Then
+        If Not Decimal.TryParse(txtSearchScore.Text.Trim(), NumberStyles.AllowLeadingSign Or NumberStyles.AllowDecimalPoint,
+                                CultureInfo.CurrentCulture, target) Then
             MessageBox.Show("Enter a valid numeric value to search for.", "Invalid Search Value",
                             MessageBoxButtons.OK, MessageBoxIcon.Warning)
             txtSearchScore.Focus()
             Return
         End If
 
-        Dim indexes As New System.Text.StringBuilder()
+        Dim indexes As New List(Of Integer)()
         For index As Integer = 0 To scores.Length - 1
             If scores(index) = target Then
-                If indexes.Length > 0 Then indexes.Append(", ")
-                indexes.Append(index.ToString())
+                indexes.Add(index)
             End If
         Next
 
-        If indexes.Length = 0 Then
+        If indexes.Count = 0 Then
             txtScoreResults.Text = "Value " & target.ToString("N2") & " was not found in the array."
         Else
             txtScoreResults.Text = "Value " & target.ToString("N2") &
-                                  " found at zero-based index(es): " & indexes.ToString()
+                                  " found at zero-based index(es): " & String.Join(", ", indexes)
         End If
     End Sub
 
@@ -237,27 +254,36 @@
             Return
         End If
 
-        Dim rowTotals(2) As Decimal
-        Dim columnTotals(3) As Decimal
-        Dim grandTotal As Decimal = 0D
-
-        For row As Integer = 0 To 2
-            For column As Integer = 0 To 3
-                Dim cellValue As Object = matrixGrid.Rows(row).Cells(column).Value
-                Dim number As Decimal
-                If cellValue Is Nothing OrElse Not Decimal.TryParse(Convert.ToString(cellValue), number) Then
+        Dim values(matrixGrid.Rows.Count - 1, matrixGrid.Columns.Count - 1) As Decimal
+        For row As Integer = 0 To values.GetUpperBound(0)
+            For column As Integer = 0 To values.GetUpperBound(1)
+                Dim cellValue As String = Convert.ToString(matrixGrid.Rows(row).Cells(column).Value)
+                If Not Decimal.TryParse(cellValue, values(row, column)) Then
                     MessageBox.Show("Enter a valid number in every matrix cell before calculating totals.",
                                     "Matrix Input Required", MessageBoxButtons.OK, MessageBoxIcon.Warning)
                     matrixGrid.CurrentCell = matrixGrid.Rows(row).Cells(column)
                     matrixGrid.BeginEdit(True)
                     Return
                 End If
-
-                rowTotals(row) += number
-                columnTotals(column) += number
-                grandTotal += number
             Next
         Next
+
+        Dim rowTotals(values.GetUpperBound(0)) As Decimal
+        Dim columnTotals(values.GetUpperBound(1)) As Decimal
+        Dim grandTotal As Decimal = 0D
+        Try
+            For row As Integer = 0 To values.GetUpperBound(0)
+                For column As Integer = 0 To values.GetUpperBound(1)
+                    Dim number As Decimal = values(row, column)
+                    rowTotals(row) += number
+                    columnTotals(column) += number
+                    grandTotal += number
+                Next
+            Next
+        Catch ex As OverflowException
+            txtMatrixResults.Text = "A running total exceeds the Decimal range. Enter smaller values."
+            Return
+        End Try
 
         txtMatrixResults.Text =
             "MATRIX TOTALS" & vbCrLf &
