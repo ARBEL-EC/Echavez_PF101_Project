@@ -159,9 +159,14 @@ Public Class frmCatchGame
         Dim assetsPath As String = IO.Path.Combine(Application.StartupPath, "Assets")
         Dim foodPath As String = IO.Path.Combine(assetsPath, "food.png")
         Dim hazardPath As String = IO.Path.Combine(assetsPath, "hazard.png")
+        Dim bombPath As String = IO.Path.Combine(assetsPath, "Bomb.png")
 
         _imgFood = LoadItemSprite(foodPath, loadErrors)
-        _imgHazard = LoadItemSprite(hazardPath, loadErrors)
+
+        Dim hazardErrors As New List(Of String)()
+        _imgHazard = LoadItemSprite(hazardPath, hazardErrors)
+        If _imgHazard Is Nothing Then _imgHazard = LoadItemSprite(bombPath, hazardErrors)
+        If _imgHazard Is Nothing Then loadErrors.AddRange(hazardErrors)
 
         If loadErrors.Count > 0 Then
             MessageBox.Show(Me,
@@ -202,7 +207,8 @@ Public Class frmCatchGame
             Throw New ArgumentException("A sprite file path is required.", NameOf(imgPath))
         End If
 
-        Dim newStream As IO.FileStream = IO.File.OpenRead(imgPath)
+        ' Keep the backing stream for animated images without holding the file open.
+        Dim newStream As New IO.MemoryStream(IO.File.ReadAllBytes(imgPath), writable:=False)
         Dim newImage As Image
         Try
             newImage = Image.FromStream(newStream, True, True)
