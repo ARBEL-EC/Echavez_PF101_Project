@@ -243,7 +243,7 @@ Public Class frmLesson8_Controls
 
     Private Sub btnOpenText_Click(sender As Object, e As EventArgs) Handles btnOpenText.Click
         If openTextDialog.ShowDialog(Me) <> DialogResult.OK Then Return
-        If Not ConfirmDocumentChange() Then Return
+        If Not ConfirmReplaceDocument() Then Return
 
         Try
             Dim fileType As RichTextBoxStreamType =
@@ -276,10 +276,10 @@ Public Class frmLesson8_Controls
         End Try
     End Sub
 
-    Friend Function ConfirmDocumentChange() As Boolean
+    Private Function ConfirmReplaceDocument() As Boolean
         If Not rtbEditor.Modified Then Return True
 
-        Select Case MessageBox.Show(Me, "Save your changes to the editor before continuing?",
+        Select Case MessageBox.Show(Me, "Save your changes before opening another file?",
                                     "Unsaved Text", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning)
             Case DialogResult.Yes
                 Return TrySaveEditor()
