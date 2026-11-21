@@ -1,0 +1,26 @@
+
+# Visual Studio cache and user settings
+.vs/
+*.suo
+*.user
+*.vsidx
+*.pdb
+
+# Generated build files
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+
+# Local SQLite databases
+*.db
+*.db-shm
+*.db-wal
+
+# Temporary files
+*.tmp
+*.log
+*.cache
+
+# NuGet packages (restored during build)
+packages/
