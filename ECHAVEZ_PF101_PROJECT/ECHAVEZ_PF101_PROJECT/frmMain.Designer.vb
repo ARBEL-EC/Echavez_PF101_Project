@@ -83,8 +83,8 @@ Partial Class frmMain
         'pnlSidebar
         '
         Me.pnlSidebar.BackColor = System.Drawing.Color.FromArgb(CType(CType(18, Byte), Integer), CType(CType(19, Byte), Integer), CType(CType(22, Byte), Integer))
-        Me.pnlSidebar.Controls.Add(Me.pnlProfile)
         Me.pnlSidebar.Controls.Add(Me.pnlNavList)
+        Me.pnlSidebar.Controls.Add(Me.pnlProfile)
         Me.pnlSidebar.Controls.Add(Me.lblSidebarCategory)
         Me.pnlSidebar.Controls.Add(Me.lblSidebarTitle)
         Me.pnlSidebar.Dock = System.Windows.Forms.DockStyle.Left
@@ -158,7 +158,7 @@ Partial Class frmMain
         Me.pnlNavList.Dock = System.Windows.Forms.DockStyle.Fill
         Me.pnlNavList.Location = New System.Drawing.Point(12, 81)
         Me.pnlNavList.Name = "pnlNavList"
-        Me.pnlNavList.Size = New System.Drawing.Size(216, 655)
+        Me.pnlNavList.Size = New System.Drawing.Size(216, 601)
         Me.pnlNavList.TabIndex = 6
         '
         'btnNavGame

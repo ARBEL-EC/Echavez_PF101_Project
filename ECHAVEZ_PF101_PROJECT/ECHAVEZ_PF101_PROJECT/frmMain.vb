@@ -175,10 +175,6 @@ Public Class frmMain
     End Sub
 
     Private Sub frmMain_FormClosing(sender As Object, e As FormClosingEventArgs) Handles MyBase.FormClosing
-        If e.CloseReason = CloseReason.UserClosing AndAlso Not CanLeaveCurrentView() Then
-            e.Cancel = True
-            Return
-        End If
         If picBg.Image IsNot Nothing Then
             Dim backgroundImage As Image = picBg.Image
             ImageAnimator.StopAnimate(backgroundImage, AddressOf OnBackgroundFrameChanged)
@@ -194,17 +190,7 @@ Public Class frmMain
     ' =========================================================
     ' INSTANT EMBEDDED VIEW ENGINE
     ' =========================================================
-    Private Function CanLeaveCurrentView() As Boolean
-        Dim editor As frmLesson8_Controls = TryCast(currentLoadedForm, frmLesson8_Controls)
-        Return editor Is Nothing OrElse editor.ConfirmDocumentChange()
-    End Function
-
     Public Sub LoadView(childForm As Form, Optional navigationButton As Button = Nothing)
-        If Not CanLeaveCurrentView() Then
-            childForm.Dispose()
-            Return
-        End If
-
         SendMessage(pnlContent.Handle, WM_SETREDRAW, False, 0)
         pnlContent.SuspendLayout()
 
@@ -247,7 +233,6 @@ Public Class frmMain
     ' NAVIGATION CLICK HANDLERS
     ' =========================================================
     Private Sub Nav_Overview_Click(sender As Object, e As EventArgs) Handles btnNavOverview.Click
-        If Not CanLeaveCurrentView() Then Return
         SetActiveButton(DirectCast(sender, Button))
         ShowOverviewDashboard()
     End Sub

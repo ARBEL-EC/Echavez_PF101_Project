@@ -1,5 +1,18 @@
 # PF101 development progress
 
+## Task 5 · Sidebar and editor navigation
+
+- `frmMain.Designer.vb` reserves the header and bottom profile space before docking the scrollable navigation panel. The navigation buttons keep their existing appearance and routing.
+- `frmMain.vb` removes the editor confirmation from lesson changes, Overview, and app close. `frmLesson8_Controls.vb` keeps the file replacement confirmation private to Open. Editor tabs share the same document.
+
+Clean cloud Debug and Release builds passed with the existing external build overrides. Both outputs contained the five game assets and the managed and native SQLite libraries. Source checks confirmed the sidebar docking order, all existing routes, and the Open-only confirmation. The two-process SQLite CRUD smoke test also passed. Windows interaction remains unverified.
+
+### Task 5 Windows checks
+
+1. At the minimum window size, expand OOP Concepts and scroll to Animation Catch Game. Confirm the button is fully visible and opens the game while the profile footer stays fixed. Check Weeks 9–15 and the SQLite records screen. Repeat after maximizing and restoring the window.
+2. In Week 8, type text, switch tabs, and return. The text should still be present. With unsaved changes, select another lesson or Overview, or close the app. Expect silent discard and check that the saved file still contains its previous contents.
+3. Save a TXT and an RTF explicitly and reopen each. With unsaved text, choose another file through Open and verify the replacement confirmation. Cancel and check that the text stays in the editor. Try an invalid RTF and verify the file error and preserved document.
+
 ## Task 4 · Weeks 9–15 and SQLite
 
 Based on `main` at `893d886`. The application still targets .NET Framework 4.7.2 and uses the existing WinForms sidebar, Dark Obsidian theme, and Catch Game.
@@ -68,7 +81,7 @@ Use the Visual Studio .NET desktop workload and the .NET Framework 4.7.2 Develop
 2. **Week 5.** Increment the Static counter twice, reset it and confirm the next click shows 1. Concatenate `Visual ` and `Basic`. Check `-2147483648 \ -1`, a divisor of `0.4`, and an operand outside the rounded 32-bit range. Convert a single space to Char and look for `U+0020`.
 3. **Week 6.** Evaluate `96.995` in both decision modes and confirm 1.25. Try `5, 1, -2` in pre-test Do and verify 5, 3, 1 with sum 9. Try `1, 10, -1` and verify zero values in pre-test Do. Try `8, 2, 1` and verify one value in post-test Do. Try a range with more than 1,000 passes and verify the lab returns promptly. Try While with `1, 5, 1` and confirm both even values are skipped. Enable Exit and check a range through 7.
 4. **Week 7.** Load, select and clear the months. Enter `1,5; 1,5; 2,5` on a comma-decimal system and find both matches for `1,5`. Fill the 3×4 grid with 1–12 and verify row totals 10, 26, 42, column totals 15, 18, 21, 24 and grand total 78. Check invalid cells and Reset.
-5. **Week 8.** Open and save TXT and RTF. Check formatting, clipboard, Undo, and Find. With unsaved text, try Open, sidebar navigation, Overview and closing the app. Exercise Save, Discard and Cancel, including cancelling Save As. Try an invalid RTF and verify prior text remains. Switch the control browser between Details and List and select a different tree node.
+5. **Week 8.** Open and save TXT and RTF. Check formatting, clipboard, Undo, and Find. Use the Task 5 Windows checks for Open and navigation behavior. Switch the control browser between Details and List and select a different tree node.
 6. **Weeks 10–12.** Follow the debugger walkthrough in IDE Basics or Week 10, including Locals and Debug Output. In the MDI lab, create two distinct notes, switch between them in the Window menu, cascade, tile and close each. In the text editor, preview enough plain text for multiple pages and print to Microsoft Print to PDF. Check page breaks and ensure a second preview starts from page one. Check Cancel and the error path without an available printer.
 7. **Catch Game and portable Release.** Generate the ZIP using [the Windows packaging instructions](README.md), extract it to a fresh directory and run the EXE. Check overview animation and all three sprites. Check movement, scoring, lives, restart and leaving the game while it runs.
 
