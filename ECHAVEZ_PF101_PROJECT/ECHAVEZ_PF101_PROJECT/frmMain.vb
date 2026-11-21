@@ -111,6 +111,8 @@ Public Class frmMain
         EnableDoubleBuffering(pnlCardModules)
         EnableDoubleBuffering(pnlCardTheme)
 
+        AddLaterWeekNavigation()
+
         ' 5. Mark "Overview" as active view
         SetActiveButton(btnNavOverview)
         ShowOverviewDashboard()
@@ -300,6 +302,52 @@ Public Class frmMain
 
     Private Sub Nav_Lesson8_Click(sender As Object, e As EventArgs) Handles btnNavLesson8.Click
         LoadView(New frmLesson8_Controls(), DirectCast(sender, Button))
+    End Sub
+
+    Private Sub AddLaterWeekNavigation()
+        Dim topics As String() = {"Midterm (Pending)", "Debugging", ".NET and MDI", "Printing",
+                                 "SQLite Records", "DataSets", "Offline Deployment"}
+        For index As Integer = 0 To topics.Length - 1
+            Dim week As Integer = 9 + index
+            Dim button As New Button With {
+                .Name = "btnNavWeek" & week.ToString(), .Text = "  Week " & week.ToString() & ": " & topics(index),
+                .Tag = week, .Dock = DockStyle.Top, .Height = btnNavLesson8.Height,
+                .FlatStyle = FlatStyle.Flat, .TextAlign = ContentAlignment.MiddleLeft,
+                .BackColor = Color.Transparent, .ForeColor = COLOR_TEXT_MUTED, .Cursor = Cursors.Hand,
+                .Font = ThemeManager.GetFont("Segoe UI", 9.5F, FontStyle.Regular), .UseVisualStyleBackColor = False
+            }
+            button.FlatAppearance.BorderSize = 0
+            AddHandler button.Click, AddressOf LaterWeek_Click
+            AddHandler button.MouseEnter, AddressOf NavButton_MouseEnter
+            AddHandler button.MouseLeave, AddressOf NavButton_MouseLeave
+            pnlNavList.Controls.Add(button)
+            ' Top-docked controls appear in reverse z-order. Keep the Catch Game below Week 15.
+            pnlNavList.Controls.SetChildIndex(button, 1)
+        Next
+        For index As Integer = 0 To pnlNavList.Controls.Count - 1
+            pnlNavList.Controls(index).TabIndex = pnlNavList.Controls.Count - 1 - index
+        Next
+    End Sub
+
+    Private Sub LaterWeek_Click(sender As Object, e As EventArgs)
+        Dim button As Button = DirectCast(sender, Button)
+        Dim week As Integer = CInt(button.Tag)
+        Select Case week
+            Case 9
+                Dim pending As New Form()
+                pending.Controls.Add(New Label With {
+                    .Dock = DockStyle.Fill, .Padding = New Padding(20),
+                    .Text = "Week 9 - Midterm" & vbCrLf & vbCrLf &
+                            "The syllabus lists the midterm examination here. Lesson materials are pending."
+                })
+                LoadView(pending, button)
+            Case 10, 11
+                LoadView(New frmLesson3_IDE With {.FollowUpWeek = week}, button)
+            Case 12
+                LoadView(New frmLesson8_Controls With {.OpenPrintingLab = True}, button)
+            Case 13 To 15
+                LoadView(New frmStudentRecords With {.StartWeek = week}, button)
+        End Select
     End Sub
 
     Private Sub Nav_Game_Click(sender As Object, e As EventArgs) Handles btnNavGame.Click

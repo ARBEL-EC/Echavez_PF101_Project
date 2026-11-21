@@ -605,7 +605,7 @@ Partial Class frmMain
         Me.lblCardModulesSub.Name = "lblCardModulesSub"
         Me.lblCardModulesSub.Size = New System.Drawing.Size(432, 22)
         Me.lblCardModulesSub.TabIndex = 34
-        Me.lblCardModulesSub.Text = "All Weeks Ready"
+        Me.lblCardModulesSub.Text = "Week 9 materials pending"
         '
         'lblCardModulesMain
         '
@@ -616,7 +616,7 @@ Partial Class frmMain
         Me.lblCardModulesMain.Name = "lblCardModulesMain"
         Me.lblCardModulesMain.Size = New System.Drawing.Size(432, 32)
         Me.lblCardModulesMain.TabIndex = 33
-        Me.lblCardModulesMain.Text = "8/8 Loaded"
+        Me.lblCardModulesMain.Text = "14 of 15 weeks available"
         '
         'lblCardModulesTitle
         '

@@ -2,6 +2,8 @@
 
 Public Class frmLesson8_Controls
 
+    Friend Property OpenPrintingLab As Boolean
+
     Private Sub frmLesson8_Controls_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         ThemeManager.ApplyTheme(Me)
         txtLessonNotes.BackColor = Color.FromArgb(18, 19, 22)
@@ -55,6 +57,10 @@ Public Class frmLesson8_Controls
         If lstPptTopics.Items.Count > 0 Then lstPptTopics.SelectedIndex = 0
 
         AddCourseworkControls()
+        If OpenPrintingLab Then
+            tabsControls.SelectedTab = tabTextEditor
+            lblEditorStatus.Text = "Week 12. Enter text, then choose Print Preview or Print. For StringBuilder and Char, try Week 6."
+        End If
         PopulateControlCategories()
         If tvControlCategories.Nodes.Count > 0 Then
             tvControlCategories.SelectedNode = tvControlCategories.Nodes(0)

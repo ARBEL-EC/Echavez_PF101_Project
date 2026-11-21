@@ -13,6 +13,8 @@
     <MyType>WindowsForms</MyType>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <Prefer32Bit>false</Prefer32Bit>
     <Deterministic>true</Deterministic>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
@@ -63,6 +65,30 @@
     <OptionInfer>On</OptionInfer>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.15" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.14" />
+    <PackageReference Include="System.Memory" Version="4.6.3" />
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.14">
+      <GeneratePathProperty>true</GeneratePathProperty>
+      <ExcludeAssets>build;buildTransitive</ExcludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="SQLite-NOTICES.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup Condition="'$(PkgSQLitePCLRaw_lib_e_sqlite3)' != ''">
+    <Content Include="$(PkgSQLitePCLRaw_lib_e_sqlite3)/runtimes/win-x86/native/e_sqlite3.dll">
+      <Link>runtimes/win-x86/native/e_sqlite3.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="$(PkgSQLitePCLRaw_lib_e_sqlite3)/runtimes/win-x64/native/e_sqlite3.dll">
+      <Link>runtimes/win-x64/native/e_sqlite3.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
@@ -89,6 +115,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AnimalModels.vb" />
+    <Compile Include="StudentRecordsStore.vb" />
+    <Compile Include="frmStudentRecords.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="BankAccount.vb" />
     <Compile Include="frmClassesObjects.Designer.vb">
       <DependentUpon>frmClassesObjects.vb</DependentUpon>
@@ -288,5 +318,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <Target Name="CheckSQLitePackageRestore" BeforeTargets="PrepareForBuild" Condition="'$(DesignTimeBuild)' != 'true'">
+    <Error Condition="'$(PkgSQLitePCLRaw_lib_e_sqlite3)' == ''"
+           Text="Restore NuGet packages before building. Use Visual Studio 2019 or later or MSBuild with /restore." />
+  </Target>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
 </Project>
