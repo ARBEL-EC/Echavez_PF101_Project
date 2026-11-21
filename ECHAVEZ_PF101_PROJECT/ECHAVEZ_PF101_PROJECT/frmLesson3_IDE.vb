@@ -1,5 +1,7 @@
 ﻿Public Class frmLesson3_IDE
 
+    Friend Property FollowUpWeek As Integer
+
     Private Sub frmLesson3_IDE_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         ThemeManager.ApplyTheme(Me)
         ' =========================================================
@@ -144,35 +146,39 @@
     End Sub
 
     Private Sub AddFollowUpLab()
-        Dim labTab As New TabPage("Debugging & MDI")
-        Dim launchButton As New Button With {.Text = "Open MDI Lab", .Dock = DockStyle.Fill, .Height = 36}
-        Dim notes As New TextBox With {
-            .Dock = DockStyle.Fill,
-            .Multiline = True,
-            .ReadOnly = True,
-            .ScrollBars = ScrollBars.Vertical,
-            .Text = "WEEK 10 - DEBUGGING AND TRACING" & vbCrLf & vbCrLf &
-                    "In Visual Studio, open the active nested project in Debug. Set a breakpoint in the Week 7 months button handler (F9), " &
-                    "start debugging (F5), and click Load Months. Step over array initialization (F10) and inspect months.Length " &
-                    "and months(0) in Locals or Watch. Continue with F5 and compare the ListBox with the watch value and the count in Debug Output." & vbCrLf & vbCrLf &
-                    "For structured file error handling, use Open in the Week 8 editor with a plain-text file named .rtf. " &
-                    "Set a breakpoint in ShowFileError to observe the exception type. Open a valid file to verify recovery." & vbCrLf & vbCrLf &
-                    "WEEK 11 - MULTIPLE DOCUMENT INTERFACE" & vbCrLf & vbCrLf &
-                    "Open the MDI lab, choose File > New Note twice, and type something different in each document. " &
-                    "Use the Window menu to switch between notes, cascade them, or tile them. " &
-                    "The parent owns the MenuStrip and each note is a child form with its MdiParent set."
-        }
-        Dim layout As New TableLayoutPanel With {.Dock = DockStyle.Fill, .ColumnCount = 1, .RowCount = 2, .Padding = New Padding(8)}
-        layout.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100.0F))
-        layout.RowStyles.Add(New RowStyle(SizeType.Percent, 100.0F))
-        layout.RowStyles.Add(New RowStyle(SizeType.Absolute, 48.0F))
-        layout.Controls.Add(notes, 0, 0)
-        layout.Controls.Add(launchButton, 0, 1)
-        labTab.Controls.Add(layout)
+        Dim debugging As TabPage = AddFollowUpTab("Debugging",
+            "WEEK 10 - DEBUGGING AND TRACING" & vbCrLf & vbCrLf &
+            "A syntax error stops the build. A runtime error happens during execution. A logic error produces an incorrect result." & vbCrLf & vbCrLf &
+            "In Visual Studio, open the active nested project in Debug. Set a breakpoint in the Week 7 months button handler (F9), " &
+            "start debugging (F5), and click Load Months. Step over array initialization (F10) and inspect months.Length " &
+            "and months(0) in Locals or Watch. Continue with F5 and compare the ListBox with the watch value and the count in Debug Output." &
+            vbCrLf & vbCrLf &
+            "For structured file error handling, use Open in the Week 8 editor with a plain-text file named .rtf. " &
+            "Set a breakpoint in ShowFileError to observe the exception type. Open a valid file to verify recovery.")
+
+        Dim launchButton As New Button With {.Text = "Open MDI Lab", .Dock = DockStyle.Bottom, .Height = 36}
         AddHandler launchButton.Click, AddressOf OpenMdiLab
-        TabControl1.TabPages.Add(labTab)
-        ThemeManager.ApplyTheme(labTab)
+        Dim mdi As TabPage = AddFollowUpTab("MDI",
+            "WEEK 11 - .NET FRAMEWORK AND MULTIPLE DOCUMENT INTERFACE" & vbCrLf & vbCrLf &
+            "The Common Language Runtime runs managed code. Windows Forms, System.IO, and drawing classes come from the .NET Framework." &
+            vbCrLf & vbCrLf &
+            "Open the MDI lab, choose File > New Note twice, and type something different in each document. " &
+            "Use the Window menu to switch between notes, cascade them, or tile them. " &
+            "The parent owns the MenuStrip and each note is a child form with its MdiParent set.", launchButton)
+        If FollowUpWeek = 10 Then TabControl1.SelectedTab = debugging
+        If FollowUpWeek = 11 Then TabControl1.SelectedTab = mdi
     End Sub
+
+    Private Function AddFollowUpTab(title As String, content As String, Optional action As Button = Nothing) As TabPage
+        Dim tab As New TabPage(title) With {.Padding = New Padding(8)}
+        tab.Controls.Add(New TextBox With {
+            .Dock = DockStyle.Fill, .Multiline = True, .ReadOnly = True, .ScrollBars = ScrollBars.Vertical, .Text = content
+        })
+        If action IsNot Nothing Then tab.Controls.Add(action)
+        TabControl1.TabPages.Add(tab)
+        ThemeManager.ApplyTheme(tab)
+        Return tab
+    End Function
 
     Private Sub OpenMdiLab(sender As Object, e As EventArgs)
         Using lab As New Form With {.Text = "PF101 - MDI Lab",

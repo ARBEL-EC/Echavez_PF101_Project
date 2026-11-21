@@ -25,7 +25,7 @@ $pendingZip = Join-Path $zipDirectory "pf101-release-$id.zip"
 
 try {
     New-Item -ItemType Directory -Path $staging | Out-Null
-    & $msbuild $project /nologo /t:Rebuild /p:Configuration=Release /p:Platform=AnyCPU `
+    & $msbuild $project /nologo /restore /t:Rebuild /p:RestoreLockedMode=true /p:Configuration=Release /p:Platform=AnyCPU `
         "/p:OutDir=$buildOutput/" "/p:BaseIntermediateOutputPath=$intermediate/"
     if ($LASTEXITCODE -ne 0) {
         throw "Release build failed with exit code $LASTEXITCODE."
@@ -34,6 +34,17 @@ try {
     $requiredFiles = @(
         "$projectName.exe"
         "$projectName.exe.config"
+        'Microsoft.Data.Sqlite.dll'
+        'SQLitePCLRaw.batteries_v2.dll'
+        'SQLitePCLRaw.core.dll'
+        'SQLitePCLRaw.provider.dynamic_cdecl.dll'
+        'System.Buffers.dll'
+        'System.Memory.dll'
+        'System.Numerics.Vectors.dll'
+        'System.Runtime.CompilerServices.Unsafe.dll'
+        'runtimes\win-x86\native\e_sqlite3.dll'
+        'runtimes\win-x64\native\e_sqlite3.dll'
+        'SQLite-NOTICES.txt'
         'Assets\background.gif'
         'Assets\player.png'
         'Assets\food.png'
