@@ -150,6 +150,7 @@
     <Compile Include="frmInheritance.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="DrawingPracticeCanvas.vb" />
     <Compile Include="frmLesson3_IDE.Designer.vb">
       <DependentUpon>frmLesson3_IDE.vb</DependentUpon>
     </Compile>

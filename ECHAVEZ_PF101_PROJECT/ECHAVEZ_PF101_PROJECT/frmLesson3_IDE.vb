@@ -164,7 +164,9 @@
             vbCrLf & vbCrLf &
             "Open the MDI lab, choose File > New Note twice, and type something different in each document. " &
             "Use the Window menu to switch between notes, cascade them, or tile them. " &
-            "The parent owns the MenuStrip and each note is a child form with its MdiParent set.", launchButton)
+            "The parent owns the MenuStrip and each note is a child form with its MdiParent set." &
+            vbCrLf & vbCrLf & "Use the Drawing tab to try the Week 11 GDI+ exercise.", launchButton)
+        AddDrawingTab()
         If FollowUpWeek = 10 Then TabControl1.SelectedTab = debugging
         If FollowUpWeek = 11 Then TabControl1.SelectedTab = mdi
     End Sub
@@ -179,6 +181,38 @@
         ThemeManager.ApplyTheme(tab)
         Return tab
     End Function
+
+    Private Sub AddDrawingTab()
+        Dim tab As New TabPage("Drawing") With {.Padding = New Padding(8)}
+        Dim canvas As New DrawingPracticeCanvas With {.Dock = DockStyle.Fill}
+        Dim shapePicker As New ComboBox With {.DropDownStyle = ComboBoxStyle.DropDownList, .Width = 130,
+                                              .AccessibleName = "Shape"}
+        shapePicker.Items.AddRange([Enum].GetNames(GetType(DrawingPracticeShape)))
+        shapePicker.SelectedIndex = 0
+        AddHandler shapePicker.SelectedIndexChanged,
+            Sub(sender, args) canvas.SetPreview(CType(shapePicker.SelectedIndex, DrawingPracticeShape), canvas.FillColor)
+        Dim colorButton As New Button With {.Text = "Choose Fill Color", .AutoSize = True}
+        AddHandler colorButton.Click,
+            Sub(sender, args)
+                Using picker As New ColorDialog With {.Color = canvas.FillColor, .FullOpen = True}
+                    If picker.ShowDialog(TopLevelControl) = DialogResult.OK Then
+                        canvas.SetPreview(CType(shapePicker.SelectedIndex, DrawingPracticeShape), picker.Color)
+                    End If
+                End Using
+            End Sub
+
+        Dim tools As New FlowLayoutPanel With {.Dock = DockStyle.Top, .AutoSize = True}
+        tools.Controls.AddRange(New Control() {
+            New Label With {.Text = "Shape", .AutoSize = True, .Margin = New Padding(3, 6, 3, 3)}, shapePicker, colorButton
+        })
+        Dim note As New Label With {.Dock = DockStyle.Top, .AutoSize = True, .Padding = New Padding(3, 4, 3, 6),
+            .Text = "Changing a setting invalidates the preview. Paint redraws it from the selected shape and color."}
+        tab.Controls.Add(canvas)
+        tab.Controls.Add(tools)
+        tab.Controls.Add(note)
+        TabControl1.TabPages.Add(tab)
+        ThemeManager.ApplyTheme(tab)
+    End Sub
 
     Private Sub OpenMdiLab(sender As Object, e As EventArgs)
         Using lab As New Form With {.Text = "PF101 - MDI Lab",
