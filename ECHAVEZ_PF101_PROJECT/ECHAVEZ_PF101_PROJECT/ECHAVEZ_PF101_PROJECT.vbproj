@@ -126,6 +126,8 @@
     <Compile Include="frmClassesObjects.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="CatchGameDifficulty.vb" />
+    <Compile Include="CatchGameLeaderboard.vb" />
     <Compile Include="frmCatchGame.Designer.vb">
       <DependentUpon>frmCatchGame.vb</DependentUpon>
     </Compile>
