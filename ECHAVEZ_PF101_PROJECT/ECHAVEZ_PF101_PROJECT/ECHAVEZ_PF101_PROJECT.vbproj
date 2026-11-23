@@ -120,6 +120,8 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="StudentRecordsStore.vb" />
+    <Compile Include="DataRowPractice.vb" />
+    <Compile Include="DataRowPracticeView.vb" />
     <Compile Include="frmStudentRecords.vb">
       <SubType>Form</SubType>
     </Compile>

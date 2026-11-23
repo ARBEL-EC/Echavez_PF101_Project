@@ -35,19 +35,24 @@ Public Class frmStudentRecords
         Me.Font = ThemeManager.GetFont("Segoe UI", 9.5F, FontStyle.Regular)
         Me.Controls.Add(_tabs)
         BuildRecordsTab()
+        Dim rowPractice As New TabPage("DataRow States")
+        rowPractice.Controls.Add(New DataRowPracticeView With {.Dock = DockStyle.Fill})
+        Dim practiceButton As New Button With {.Text = "Open DataRow Practice", .Dock = DockStyle.Bottom, .Height = 36}
+        AddHandler practiceButton.Click, Sub(sender, args) _tabs.SelectedTab = rowPractice
         AddReadingTab("Week 14 - DataSets",
             "A DataReader streams rows while the SQLite connection is open. DataTable.Load reads those rows into the StudentPerformance table in a DataSet." &
             vbCrLf & vbCrLf &
             "The grid is bound to that disconnected table. The StudentPerformanceRecord class validates each new or edited record. " &
             "Parameterized INSERT, UPDATE, and DELETE commands write to SQLite, then the app reads a fresh snapshot." &
             vbCrLf & vbCrLf &
-            "Add a record, search by name, and compare the row count here. Reopen the app to verify the data came from disk.", _snapshotStatus)
+            "Add a record, search by name, and compare the row count here. Reopen the app to verify the data came from disk.", _snapshotStatus, practiceButton)
         AddReadingTab("Week 15 - Offline deployment",
             "Build the Release ZIP with Package-Release.ps1 on the development machine. Extract the entire archive on a Windows computer with the .NET Framework runtime." &
             vbCrLf & vbCrLf &
             "Open Student Performance Records. The first visit creates the table and database in your Windows profile. Add a record, close the app, " &
             "and reopen it to confirm persistence. Run the same exercise offline to verify that the packaged SQLite libraries and local file are sufficient." &
             vbCrLf & vbCrLf & "Database file" & vbCrLf & StudentRecordsStore.DefaultDatabasePath)
+        _tabs.TabPages.Add(rowPractice)
     End Sub
 
     Protected Overrides Sub OnLoad(e As EventArgs)
@@ -126,12 +131,14 @@ Public Class frmStudentRecords
         _tabs.TabPages.Add(tab)
     End Sub
 
-    Private Sub AddReadingTab(title As String, content As String, Optional status As Label = Nothing)
+    Private Sub AddReadingTab(title As String, content As String, Optional status As Label = Nothing,
+                              Optional action As Button = Nothing)
         Dim tab As New TabPage(title) With {.Padding = New Padding(12)}
         tab.Controls.Add(New TextBox With {
             .Text = content, .Dock = DockStyle.Fill, .Multiline = True, .ReadOnly = True, .ScrollBars = ScrollBars.Vertical
         })
         If status IsNot Nothing Then tab.Controls.Add(status)
+        If action IsNot Nothing Then tab.Controls.Add(action)
         _tabs.TabPages.Add(tab)
     End Sub
 
