@@ -5,7 +5,6 @@ Imports System.Windows.Forms
 Public Class frmCatchGame
     Private Const StartingLives As Integer = 3
     Private Const PlayerMoveSpeed As Integer = 8
-    Private Const SpawnIntervalMilliseconds As Integer = 900
     Private Const FoodScore As Integer = 10
 
     Private ReadOnly _fallingItems As New List(Of FallingItem)()
@@ -14,7 +13,25 @@ Public Class frmCatchGame
     Private _score As Integer
     Private _lives As Integer = StartingLives
     Private _spawnElapsed As Integer
-    Private _gameRunning As Boolean
+    Private Enum RoundState
+        Ready
+        Running
+        Paused
+        Finished
+    End Enum
+
+    Private ReadOnly _activeTime As New Stopwatch()
+    Private ReadOnly _difficultyPicker As New ComboBox With {.DropDownStyle = ComboBoxStyle.DropDownList, .Width = 96,
+                                                             .AccessibleName = "Difficulty"}
+    Private ReadOnly _playerName As New TextBox With {.Text = "Player", .MaxLength = CatchGameLeaderboard.MaximumNameLength,
+                                                      .Width = 112, .AccessibleName = "Player name"}
+    Private ReadOnly _pauseButton As New Button With {.Text = "Pause", .AutoSize = True, .Height = 36}
+    Private ReadOnly _topTenButton As New Button With {.Text = "Top 10", .AutoSize = True, .Height = 36}
+    Private ReadOnly _leaderboard As New CatchGameLeaderboard(CatchGameLeaderboard.DefaultDatabasePath)
+    Private _state As RoundState
+    Private _difficulty As CatchGameDifficulty
+    Private _roundPlayer As String
+    Private _level As Integer = 1
     Private _playerSprite As Image
     Private _playerSpriteStream As IO.Stream
     Private _imgFood As Image
@@ -33,8 +50,12 @@ Public Class frmCatchGame
     End Property
 
     Private Sub frmCatchGame_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        SetUpRoundControls()
         ThemeManager.ApplyTheme(Me)
         ThemeManager.SetButtonKind(btnRestart, ThemeManager.ButtonKind.Secondary)
+        ThemeManager.SetButtonKind(_pauseButton, ThemeManager.ButtonKind.Secondary)
+        ThemeManager.SetButtonKind(_topTenButton, ThemeManager.ButtonKind.Secondary)
+        SetRoundState(RoundState.Ready)
         picPlayer.SizeMode = PictureBoxSizeMode.Zoom
         picPlayer.BackColor = Color.Transparent
         LoadPlayerSpriteFromAssets()
@@ -58,6 +79,7 @@ Public Class frmCatchGame
         LoadItemSprites()
         PositionPlayer()
         EnsurePlayerVisible()
+        UpdateHud()
         CenterGameMessage()
     End Sub
 
@@ -227,52 +249,105 @@ Public Class frmCatchGame
         If oldStream IsNot Nothing Then oldStream.Dispose()
     End Sub
 
+    Private Sub SetUpRoundControls()
+        _difficultyPicker.Items.AddRange(New Object() {"Easy", "Normal", "Hard"})
+        _difficultyPicker.SelectedIndex = CInt(CatchGameDifficulty.Normal)
+        AddHandler _pauseButton.Click, AddressOf TogglePause
+        AddHandler _topTenButton.Click, AddressOf ShowLeaderboard
+        AddHandler btnRestart.PreviewKeyDown, AddressOf frmCatchGame_PreviewKeyDown
+        AddHandler _pauseButton.PreviewKeyDown, AddressOf frmCatchGame_PreviewKeyDown
+        AddHandler _topTenButton.PreviewKeyDown, AddressOf frmCatchGame_PreviewKeyDown
+
+        Dim actions As New FlowLayoutPanel With {.Dock = DockStyle.Top, .AutoSize = True,
+                                                  .AutoSizeMode = AutoSizeMode.GrowAndShrink, .Padding = New Padding(8, 3, 8, 0)}
+        actions.Controls.AddRange(New Control() {lblScore, lblLives, btnStart, btnRestart, _pauseButton, _topTenButton})
+        Dim options As New FlowLayoutPanel With {.Dock = DockStyle.Top, .AutoSize = True,
+                                                  .AutoSizeMode = AutoSizeMode.GrowAndShrink, .Padding = New Padding(8, 0, 8, 3)}
+        lblHint.AutoSize = True
+        lblHint.Margin = New Padding(8, 5, 3, 3)
+        options.Controls.AddRange(New Control() {
+            New Label With {.Text = "Difficulty", .AutoSize = True, .Margin = New Padding(3, 5, 3, 3)}, _difficultyPicker,
+            New Label With {.Text = "Name", .AutoSize = True, .Margin = New Padding(8, 5, 3, 3)}, _playerName, lblHint
+        })
+        pnlHud.Controls.Add(options)
+        pnlHud.Controls.Add(actions)
+        pnlHud.AutoSize = True
+        pnlHud.AutoSizeMode = AutoSizeMode.GrowAndShrink
+    End Sub
+
     Private Sub btnStart_Click(sender As Object, e As EventArgs) Handles btnStart.Click
-        If _lives <= 0 Then ResetGame()
-        StartGame()
+        If _state = RoundState.Ready OrElse _state = RoundState.Finished Then BeginRound()
     End Sub
 
     Private Sub btnRestart_Click(sender As Object, e As EventArgs) Handles btnRestart.Click
-        ResetGame()
-        StartGame()
+        BeginRound()
     End Sub
 
-    Private Sub StartGame()
-        If _gameRunning Then Return
-
-        _gameRunning = True
-        _spawnElapsed = 0
-        lblGameMessage.Visible = False
-        btnStart.Enabled = False
-        _pressedKeys.Clear()
-        gameTimer.Start()
-        pnlPlayfield.Focus()
-    End Sub
-
-    Private Sub ResetGame()
+    Private Sub BeginRound()
         gameTimer.Stop()
-        _gameRunning = False
+        _activeTime.Reset()
+        _difficulty = CType(_difficultyPicker.SelectedIndex, CatchGameDifficulty)
+        _roundPlayer = _playerName.Text
         _score = 0
         _lives = StartingLives
+        _level = 1
         _spawnElapsed = 0
-        _pressedKeys.Clear()
         ClearFallingItems()
         PositionPlayer()
         EnsurePlayerVisible()
         UpdateHud()
-        lblGameMessage.Text = "CATCH FOOD - AVOID HAZARDS" & vbCrLf & "Press Start Game to play"
-        lblGameMessage.Visible = True
-        btnStart.Text = "Start Game"
-        btnStart.Enabled = True
+        ResumeRound()
+    End Sub
+
+    Private Sub SetRoundState(state As RoundState)
+        _state = state
+        _pressedKeys.Clear()
+        Dim canConfigure As Boolean = state = RoundState.Ready OrElse state = RoundState.Finished
+        _difficultyPicker.Enabled = canConfigure
+        _playerName.Enabled = canConfigure
+        btnStart.Enabled = canConfigure
+        btnStart.Text = If(state = RoundState.Finished, "Play Again", "Start Game")
+        _pauseButton.Enabled = Not canConfigure
+        _pauseButton.Text = If(state = RoundState.Paused, "Resume", "Pause")
+    End Sub
+
+    Private Sub ResumeRound()
+        SetRoundState(RoundState.Running)
+        lblGameMessage.Hide()
+        _activeTime.Start()
+        gameTimer.Start()
+        pnlPlayfield.Focus()
+    End Sub
+
+    Private Sub PauseRound()
+        gameTimer.Stop()
+        _activeTime.Stop()
+        SetRoundState(RoundState.Paused)
+        ShowRoundMessage("PAUSED" & vbCrLf & "Choose Resume to continue.")
+    End Sub
+
+    Private Sub TogglePause(sender As Object, e As EventArgs)
+        If _state = RoundState.Running Then
+            PauseRound()
+        ElseIf _state = RoundState.Paused Then
+            ResumeRound()
+        End If
     End Sub
 
     Private Sub gameTimer_Tick(sender As Object, e As EventArgs) Handles gameTimer.Tick
-        If Not _gameRunning Then Return
+        If _state <> RoundState.Running Then Return
 
         MovePlayer()
+        Dim currentLevel As Integer = CatchGamePace.LevelAt(_activeTime.ElapsedMilliseconds)
+        If currentLevel <> _level Then
+            _level = currentLevel
+            UpdateHud()
+        End If
+
         _spawnElapsed += gameTimer.Interval
-        If _spawnElapsed >= SpawnIntervalMilliseconds Then
-            _spawnElapsed -= SpawnIntervalMilliseconds
+        Dim interval As Integer = CatchGamePace.SpawnInterval(_difficulty, _level)
+        If _spawnElapsed >= interval Then
+            _spawnElapsed -= interval
             SpawnFallingItem()
         End If
 
@@ -313,7 +388,8 @@ Public Class frmCatchGame
         itemBox.BringToFront()
         picPlayer.BringToFront()
 
-        _fallingItems.Add(New FallingItem(itemBox, isHazard, _random.Next(3, 6)))
+        Dim speed As Integer = CatchGamePace.MinimumFallSpeed(_difficulty, _level) + _random.Next(3)
+        _fallingItems.Add(New FallingItem(itemBox, isHazard, speed))
     End Sub
 
     Private Sub MoveAndCheckFallingItems()
@@ -359,17 +435,62 @@ Public Class frmCatchGame
     Private Sub UpdateHud()
         lblScore.Text = "SCORE " & _score.ToString("0000")
         lblLives.Text = "LIVES " & _lives.ToString()
+        lblHint.Text = "Level " & _level.ToString() & "   ·   ← / → or A / D   ·   Food +10"
     End Sub
 
     Private Sub EndGame()
         gameTimer.Stop()
-        _gameRunning = False
-        _pressedKeys.Clear()
-        lblGameMessage.Text = "GAME OVER" & vbCrLf & "Final score: " & _score.ToString()
-        lblGameMessage.Visible = True
-        btnStart.Text = "Play Again"
-        btnStart.Enabled = True
+        _activeTime.Stop()
+        SetRoundState(RoundState.Finished)
+        Dim scoreStatus As String = "Score saved. Choose Play Again or Top 10."
+        Try
+            _leaderboard.SaveScore(_roundPlayer, _difficulty, _score)
+        Catch ex As Exception When IsLeaderboardError(ex)
+            Debug.WriteLine(ex.ToString())
+            scoreStatus = "Score could not be saved. You can still play again."
+        End Try
+        ShowRoundMessage("GAME OVER" & vbCrLf & _difficulty.ToString() & " · Level " & _level.ToString() &
+                         " · Score " & _score.ToString() & vbCrLf & scoreStatus)
     End Sub
+
+    Private Sub ShowRoundMessage(message As String)
+        lblGameMessage.Text = message
+        lblGameMessage.BringToFront()
+        lblGameMessage.Show()
+        CenterGameMessage()
+    End Sub
+
+    Private Sub ShowLeaderboard(sender As Object, e As EventArgs)
+        If _state = RoundState.Running Then PauseRound()
+        Try
+            Using scores As DataTable = _leaderboard.ReadTopTen(),
+                  dialog As New Form With {.Text = "Catch Game Top 10", .ClientSize = New Size(570, 360),
+                                           .StartPosition = FormStartPosition.CenterParent, .ShowInTaskbar = False}
+                Dim grid As New DataGridView With {
+                    .Dock = DockStyle.Fill, .DataSource = scores, .ReadOnly = True,
+                    .AllowUserToAddRows = False, .AllowUserToDeleteRows = False, .RowHeadersVisible = False,
+                    .AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+                }
+                dialog.Controls.Add(grid)
+                If scores.Rows.Count = 0 Then
+                    dialog.Controls.Add(New Label With {.Text = "Complete a round to record a score.", .Dock = DockStyle.Top,
+                                                       .Height = 30, .TextAlign = ContentAlignment.MiddleCenter})
+                End If
+                ThemeManager.ApplyTheme(dialog)
+                dialog.ShowDialog(TopLevelControl)
+            End Using
+        Catch ex As Exception When IsLeaderboardError(ex)
+            Debug.WriteLine(ex.ToString())
+            MessageBox.Show(Me, "Could not open the local leaderboard.", "Catch Game", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+        End Try
+    End Sub
+
+    Private Shared Function IsLeaderboardError(ex As Exception) As Boolean
+        Return TypeOf ex Is Microsoft.Data.Sqlite.SqliteException OrElse TypeOf ex Is IO.IOException OrElse
+               TypeOf ex Is UnauthorizedAccessException OrElse TypeOf ex Is System.Security.SecurityException OrElse
+               TypeOf ex Is TypeInitializationException OrElse TypeOf ex Is DllNotFoundException OrElse
+               TypeOf ex Is BadImageFormatException OrElse TypeOf ex Is EntryPointNotFoundException
+    End Function
 
     Private Sub PositionPlayer()
         picPlayer.Top = Math.Max(0, pnlPlayfield.ClientSize.Height - picPlayer.Height - 10)
@@ -377,6 +498,10 @@ Public Class frmCatchGame
     End Sub
 
     Private Sub CenterGameMessage()
+        lblGameMessage.Width = Math.Max(1, Math.Min(LogicalToDeviceUnits(640), pnlPlayfield.ClientSize.Width - LogicalToDeviceUnits(24)))
+        Dim messageSize As Size = TextRenderer.MeasureText(lblGameMessage.Text, lblGameMessage.Font,
+                                                           New Size(lblGameMessage.Width, Integer.MaxValue), TextFormatFlags.WordBreak)
+        lblGameMessage.Height = messageSize.Height + LogicalToDeviceUnits(16)
         lblGameMessage.Left = Math.Max(0, (pnlPlayfield.ClientSize.Width - lblGameMessage.Width) \ 2)
         lblGameMessage.Top = Math.Max(0, (pnlPlayfield.ClientSize.Height - lblGameMessage.Height) \ 2 - 20)
     End Sub
@@ -388,11 +513,11 @@ Public Class frmCatchGame
 
     Private Sub frmCatchGame_PreviewKeyDown(sender As Object, e As PreviewKeyDownEventArgs) _
         Handles MyBase.PreviewKeyDown, pnlPlayfield.PreviewKeyDown, picPlayer.PreviewKeyDown
-        If IsMovementKey(e.KeyCode) Then e.IsInputKey = True
+        If _state = RoundState.Running AndAlso IsMovementKey(e.KeyCode) Then e.IsInputKey = True
     End Sub
 
     Private Sub frmCatchGame_KeyDown(sender As Object, e As KeyEventArgs) Handles MyBase.KeyDown
-        If IsMovementKey(e.KeyCode) Then
+        If _state = RoundState.Running AndAlso IsMovementKey(e.KeyCode) Then
             _pressedKeys.Add(e.KeyCode)
             e.Handled = True
             e.SuppressKeyPress = True
@@ -400,7 +525,7 @@ Public Class frmCatchGame
     End Sub
 
     Private Sub frmCatchGame_KeyUp(sender As Object, e As KeyEventArgs) Handles MyBase.KeyUp
-        If IsMovementKey(e.KeyCode) Then
+        If _state = RoundState.Running AndAlso IsMovementKey(e.KeyCode) Then
             _pressedKeys.Remove(e.KeyCode)
             e.Handled = True
             e.SuppressKeyPress = True
@@ -408,7 +533,7 @@ Public Class frmCatchGame
     End Sub
 
     Protected Overrides Function IsInputKey(keyData As Keys) As Boolean
-        If IsMovementKey(keyData And Keys.KeyCode) Then Return True
+        If _state = RoundState.Running AndAlso IsMovementKey(keyData And Keys.KeyCode) Then Return True
         Return MyBase.IsInputKey(keyData)
     End Function
 
@@ -426,6 +551,7 @@ Public Class frmCatchGame
 
     Friend Sub ReleaseGameResources()
         If gameTimer IsNot Nothing Then gameTimer.Stop()
+        _activeTime.Stop()
         ClearFallingItems()
         picPlayer.Image = Nothing
         If _playerSprite IsNot Nothing Then

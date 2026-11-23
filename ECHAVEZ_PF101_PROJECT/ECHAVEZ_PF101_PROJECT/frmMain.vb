@@ -38,6 +38,9 @@ Public Class frmMain
     ' Runtime-only state
     Private currentActiveBtn As Button = Nothing
     Private currentLoadedForm As Form = Nothing
+    Private ReadOnly _midtermPractice As New CourseReviewAttempt(PracticeQuestions.Midterm())
+    Private ReadOnly _finalsPractice As New CourseReviewAttempt(PracticeQuestions.Finals())
+
     Private backgroundImageStream As IO.MemoryStream = Nothing
 
     Private Sub frmMain_Load(sender As Object, e As EventArgs) Handles MyBase.Load
@@ -294,24 +297,33 @@ Public Class frmMain
                                  "SQLite Records", "DataSets", "Offline Deployment"}
         For index As Integer = 0 To topics.Length - 1
             Dim week As Integer = 9 + index
-            Dim button As New Button With {
-                .Name = "btnNavWeek" & week.ToString(), .Text = "  Week " & week.ToString() & ": " & topics(index),
-                .Tag = week, .Dock = DockStyle.Top, .Height = btnNavLesson8.Height,
-                .FlatStyle = FlatStyle.Flat, .TextAlign = ContentAlignment.MiddleLeft,
-                .BackColor = Color.Transparent, .ForeColor = COLOR_TEXT_MUTED, .Cursor = Cursors.Hand,
-                .Font = ThemeManager.GetFont("Segoe UI", 9.5F, FontStyle.Regular), .UseVisualStyleBackColor = False
-            }
-            button.FlatAppearance.BorderSize = 0
-            AddHandler button.Click, AddressOf LaterWeek_Click
-            AddHandler button.MouseEnter, AddressOf NavButton_MouseEnter
-            AddHandler button.MouseLeave, AddressOf NavButton_MouseLeave
-            pnlNavList.Controls.Add(button)
-            ' Top-docked controls appear in reverse z-order. Keep the Catch Game below Week 15.
-            pnlNavList.Controls.SetChildIndex(button, 1)
+            AddSidebarButton("btnNavWeek" & week.ToString(), "Week " & week.ToString() & ": " & topics(index),
+                             AddressOf LaterWeek_Click, week)
         Next
+        AddSidebarButton("btnNavMidtermPractice", "Midterm Practice",
+                         Sub(sender, args) LoadView(New frmCourseReview("Midterm Practice", _midtermPractice), DirectCast(sender, Button)))
+        AddSidebarButton("btnNavFinalsPractice", "Finals Practice",
+                         Sub(sender, args) LoadView(New frmCourseReview("Finals Practice", _finalsPractice), DirectCast(sender, Button)))
+
         For index As Integer = 0 To pnlNavList.Controls.Count - 1
             pnlNavList.Controls(index).TabIndex = pnlNavList.Controls.Count - 1 - index
         Next
+    End Sub
+
+    Private Sub AddSidebarButton(name As String, caption As String, action As EventHandler, Optional tag As Object = Nothing)
+        Dim button As New Button With {
+            .Name = name, .Text = "  " & caption, .Tag = tag, .Dock = DockStyle.Top, .Height = btnNavLesson8.Height,
+            .FlatStyle = FlatStyle.Flat, .TextAlign = ContentAlignment.MiddleLeft,
+            .BackColor = Color.Transparent, .ForeColor = COLOR_TEXT_MUTED, .Cursor = Cursors.Hand,
+            .Font = ThemeManager.GetFont("Segoe UI", 9.5F, FontStyle.Regular), .UseVisualStyleBackColor = False
+        }
+        button.FlatAppearance.BorderSize = 0
+        AddHandler button.Click, action
+        AddHandler button.MouseEnter, AddressOf NavButton_MouseEnter
+        AddHandler button.MouseLeave, AddressOf NavButton_MouseLeave
+        pnlNavList.Controls.Add(button)
+        ' Top-docked controls appear in reverse z-order. Keep the Catch Game below practice.
+        pnlNavList.Controls.SetChildIndex(button, 1)
     End Sub
 
     Private Sub LaterWeek_Click(sender As Object, e As EventArgs)

@@ -1,5 +1,32 @@
 # PF101 development progress
 
+## Task 6 · Catch Game, course practice, and demonstrations
+
+Based on `main` at `7ff7812`. The new questions and UI use this project’s course materials and Dark Obsidian controls.
+
+| Feature | Implementation |
+| --- | --- |
+| Catch Game | `frmCatchGame.vb` adds Easy, Normal and Hard, Pause/Resume, and a final-score summary with Play Again and Top 10. `CatchGameDifficulty.vb` raises the level every 20 seconds of active play up to Level 8. Higher levels spawn items sooner and increase the speed of newly spawned items. A paused round retains its score, lives, falling items and elapsed time. Normal starts at the previous spawn interval and speeds. Movement keys, three lives, hazard chance, sprites and ten points per food follow the existing game. |
+| Top ten | `CatchGameLeaderboard.vb` records completed games with the player name, difficulty, score and local display time. One table ranks all difficulties by score, with earlier records first on ties. The database lives at `%LOCALAPPDATA%\Echavez_PF101_Project\CatchGameScores.sqlite3`, alongside the separate student database. A storage error leaves the game playable. |
+| Midterm and Finals Practice | `CourseReview.vb` contains 24 original practice questions with explanations and topic references. Midterm covers Weeks 1–8. Finals covers Weeks 10–15. `frmCourseReview.vb` shows progress and score, explains each submitted answer, and offers Retry Practice. `frmMain.vb` gives each quiz its own sidebar entry and attempt. Attempts stay in memory while the app is open and start fresh after a restart. Week 9 still identifies the pending midterm material. |
+| Week 11 drawing | The existing Week 11 view in `frmLesson3_IDE.vb` includes a Drawing tab. `DrawingPracticeCanvas.vb` draws rectangles, ellipses and triangles with the chosen fill. The canvas uses double buffering, redraws from its Paint event, and invalidates on changes. |
+| Week 14 row states | `frmStudentRecords.vb` links to the DataRow States tab. `DataRowPractice.vb` and `DataRowPracticeView.vb` display real Added, Modified, Deleted and Unchanged states and Original and Current values. Accept, Reject and Reset work on the seeded in-memory DataSet. The exercise has no database connection. |
+
+### Task 6 verification
+
+- Clean Debug and Release builds of the .NET Framework 4.7.2 project passed on Linux with the existing external build overrides. All five sprite and wallpaper assets matched their source files. Both native SQLite libraries were present.
+- A VB smoke harness exercised level thresholds and caps, the original Normal starting pace, both quiz banks, duplicate submission prevention, final scoring and retry, and all four DataRow states with Accept/Reject/Reset.
+- The same harness wrote and read SQLite scores across two processes. It checked the ten-row limit, ordering and ties, an apostrophe in a player name, and an unchanged student database confirmed by a byte comparison.
+- The Release script generated a ZIP containing the application, SQLite dependencies and assets. The verification archive contained no user databases. Source checks confirmed the sidebar routes and preserved game constants. WinForms interaction and rendering still require Windows.
+
+### Task 6 Windows checks
+
+1. Start all three difficulties in Catch Game. Check arrow and A/D movement, food scoring, hazard life loss, and the level after about 20 seconds of active play. Pause and wait through a level interval. Verify that positions and level stay fixed until Resume. Check Restart while playing and paused, Play Again after game over, and Top 10 after reopening the app. At minimum window size and higher DPI, confirm the HUD and the game-over summary remain readable.
+2. From the sidebar, open Midterm Practice and Finals Practice. Try a correct answer and an incorrect answer in each, finish an attempt, and verify its score and explanations. Visit another lesson and return to check session progress. Verify Retry Practice resets only the selected quiz.
+3. From Week 11, open Drawing, choose each shape and a fill color, then resize or cover and uncover the window. Confirm the shape repaints. Open the existing MDI demo afterward.
+4. From Week 14, open DataRow Practice. Add a sample, change the score of one baseline row, delete a different baseline row, and observe all four states and their values. Test Accept, Reject and Reset. Verify the SQLite records grid still shows the real rows.
+5. Build with native Windows MSBuild, extract the generated Release ZIP, and repeat the Catch Game and SQLite checks offline.
+
 ## Task 5 · Sidebar and editor navigation
 
 - `frmMain.Designer.vb` reserves the header and bottom profile space before docking the scrollable navigation panel. The navigation buttons keep their existing appearance and routing.

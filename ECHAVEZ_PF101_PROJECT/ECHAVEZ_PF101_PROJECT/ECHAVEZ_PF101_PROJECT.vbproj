@@ -115,7 +115,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AnimalModels.vb" />
+    <Compile Include="CourseReview.vb" />
+    <Compile Include="frmCourseReview.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="StudentRecordsStore.vb" />
+    <Compile Include="DataRowPractice.vb" />
+    <Compile Include="DataRowPracticeView.vb" />
     <Compile Include="frmStudentRecords.vb">
       <SubType>Form</SubType>
     </Compile>
@@ -126,6 +132,8 @@
     <Compile Include="frmClassesObjects.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="CatchGameDifficulty.vb" />
+    <Compile Include="CatchGameLeaderboard.vb" />
     <Compile Include="frmCatchGame.Designer.vb">
       <DependentUpon>frmCatchGame.vb</DependentUpon>
     </Compile>
@@ -144,6 +152,7 @@
     <Compile Include="frmInheritance.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="DrawingPracticeCanvas.vb" />
     <Compile Include="frmLesson3_IDE.Designer.vb">
       <DependentUpon>frmLesson3_IDE.vb</DependentUpon>
     </Compile>
