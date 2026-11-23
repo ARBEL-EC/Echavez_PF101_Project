@@ -27,6 +27,16 @@ Public Class frmCatchGame
                                                       .Width = 112, .AccessibleName = "Player name"}
     Private ReadOnly _pauseButton As New Button With {.Text = "Pause", .AutoSize = True, .Height = 36}
     Private ReadOnly _topTenButton As New Button With {.Text = "Top 10", .AutoSize = True, .Height = 36}
+    Private ReadOnly _levelLabel As New Label With {.AutoSize = True}
+    Private ReadOnly _roundCard As New TableLayoutPanel With {
+        .ColumnCount = 1, .RowCount = 5, .AutoSize = True, .AutoSizeMode = AutoSizeMode.GrowAndShrink, .Padding = New Padding(12)
+    }
+    Private ReadOnly _roundSummary As New Label With {.AutoSize = True, .TextAlign = ContentAlignment.MiddleCenter, .Anchor = AnchorStyles.None}
+    Private ReadOnly _roundStatus As New Label With {.AutoSize = True, .TextAlign = ContentAlignment.MiddleCenter, .Anchor = AnchorStyles.None}
+    Private ReadOnly _cardActions As New FlowLayoutPanel With {.AutoSize = True, .Anchor = AnchorStyles.None}
+    Private ReadOnly _cardPrimary As New Button With {.AutoSize = True}
+    Private ReadOnly _cardTopTen As New Button With {.Text = "Top 10", .AutoSize = True}
+    Private ReadOnly _diagnostics As New LinkLabel With {.Text = "Open diagnostics", .AutoSize = True, .Anchor = AnchorStyles.None}
     Private ReadOnly _leaderboard As New CatchGameLeaderboard(CatchGameLeaderboard.DefaultDatabasePath)
     Private _state As RoundState
     Private _difficulty As CatchGameDifficulty
@@ -51,36 +61,28 @@ Public Class frmCatchGame
 
     Private Sub frmCatchGame_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         SetUpRoundControls()
+        BuildRoundCard()
         ThemeManager.ApplyTheme(Me)
         ThemeManager.SetButtonKind(btnRestart, ThemeManager.ButtonKind.Secondary)
         ThemeManager.SetButtonKind(_pauseButton, ThemeManager.ButtonKind.Secondary)
         ThemeManager.SetButtonKind(_topTenButton, ThemeManager.ButtonKind.Secondary)
+        ThemeManager.SetButtonKind(_cardTopTen, ThemeManager.ButtonKind.Secondary)
         SetRoundState(RoundState.Ready)
         picPlayer.SizeMode = PictureBoxSizeMode.Zoom
         picPlayer.BackColor = Color.Transparent
         LoadPlayerSpriteFromAssets()
 
-        Dim doubleBufferedProperty = GetType(Control).GetProperty(
-            "DoubleBuffered",
-            Reflection.BindingFlags.Instance Or Reflection.BindingFlags.NonPublic)
-        If doubleBufferedProperty Is Nothing Then
-            Throw New InvalidOperationException("The playfield could not enable double buffering.")
-        End If
-        doubleBufferedProperty.SetValue(pnlPlayfield, True, Nothing)
-
-        pnlHud.BackColor = Color.FromArgb(26, 30, 38)
+        pnlHud.BackColor = ThemeManager.ClrSurface
         pnlPlayfield.BackColor = Color.FromArgb(37, 43, 56)
-        lblGameMessage.BackColor = pnlPlayfield.BackColor
-        lblGameMessage.ForeColor = Color.FromArgb(248, 250, 252)
-        lblScore.ForeColor = Color.FromArgb(248, 250, 252)
-        lblLives.ForeColor = Color.FromArgb(248, 250, 252)
-        lblHint.ForeColor = Color.FromArgb(148, 163, 184)
+        _roundCard.BackColor = ThemeManager.ClrSurface
+        lblHint.ForeColor = ThemeManager.ClrTextMuted
+        _roundStatus.ForeColor = ThemeManager.ClrTextMuted
 
         LoadItemSprites()
         PositionPlayer()
         EnsurePlayerVisible()
         UpdateHud()
-        CenterGameMessage()
+        ShowRoundCard("Catch food and avoid hazards", "", "Choose a difficulty, then start the game.")
     End Sub
 
     Private Sub LoadPlayerSpriteFromAssets()
@@ -258,21 +260,67 @@ Public Class frmCatchGame
         AddHandler _pauseButton.PreviewKeyDown, AddressOf frmCatchGame_PreviewKeyDown
         AddHandler _topTenButton.PreviewKeyDown, AddressOf frmCatchGame_PreviewKeyDown
 
-        Dim actions As New FlowLayoutPanel With {.Dock = DockStyle.Top, .AutoSize = True,
-                                                  .AutoSizeMode = AutoSizeMode.GrowAndShrink, .Padding = New Padding(8, 3, 8, 0)}
-        actions.Controls.AddRange(New Control() {lblScore, lblLives, btnStart, btnRestart, _pauseButton, _topTenButton})
-        Dim options As New FlowLayoutPanel With {.Dock = DockStyle.Top, .AutoSize = True,
-                                                  .AutoSizeMode = AutoSizeMode.GrowAndShrink, .Padding = New Padding(8, 0, 8, 3)}
+        Dim stats As FlowLayoutPanel = CreateHudRow()
+        For Each metric As Label In {lblScore, lblLives, _levelLabel}
+            metric.AutoSize = True
+            metric.Font = ThemeManager.GetFont("Segoe UI", 11.0F, FontStyle.Bold)
+            metric.Margin = New Padding(4, 7, 16, 7)
+            stats.Controls.Add(metric)
+        Next
         lblHint.AutoSize = True
-        lblHint.Margin = New Padding(8, 5, 3, 3)
-        options.Controls.AddRange(New Control() {
-            New Label With {.Text = "Difficulty", .AutoSize = True, .Margin = New Padding(3, 5, 3, 3)}, _difficultyPicker,
-            New Label With {.Text = "Name", .AutoSize = True, .Margin = New Padding(8, 5, 3, 3)}, _playerName, lblHint
+        lblHint.Margin = New Padding(4, 8, 4, 6)
+        lblHint.Text = "Move with ← / → or A / D"
+        stats.Controls.Add(lblHint)
+
+        Dim controls As FlowLayoutPanel = CreateHudRow()
+        controls.Controls.AddRange(New Control() {
+            New Label With {.Text = "Difficulty", .AutoSize = True, .Margin = New Padding(4, 7, 3, 3)}, _difficultyPicker,
+            New Label With {.Text = "Player name", .AutoSize = True, .Margin = New Padding(8, 7, 3, 3)}, _playerName,
+            btnStart, btnRestart, _pauseButton, _topTenButton
         })
-        pnlHud.Controls.Add(options)
-        pnlHud.Controls.Add(actions)
+        For Each button As Button In {btnStart, btnRestart, _pauseButton, _topTenButton}
+            button.AutoSize = True
+            button.Size = New Size(0, LogicalToDeviceUnits(28))
+            button.Margin = New Padding(4, 3, 4, 3)
+        Next
+
+        pnlHud.Controls.Add(controls)
+        pnlHud.Controls.Add(stats)
         pnlHud.AutoSize = True
         pnlHud.AutoSizeMode = AutoSizeMode.GrowAndShrink
+    End Sub
+
+    Private Shared Function CreateHudRow() As FlowLayoutPanel
+        Return New FlowLayoutPanel With {.Dock = DockStyle.Top, .AutoSize = True,
+                                         .AutoSizeMode = AutoSizeMode.GrowAndShrink, .Padding = New Padding(8, 0, 8, 3)}
+    End Function
+
+    Private Sub BuildRoundCard()
+        _roundCard.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100.0F))
+        For index As Integer = 0 To _roundCard.RowCount - 1
+            _roundCard.RowStyles.Add(New RowStyle(SizeType.AutoSize))
+        Next
+        lblGameMessage.AutoSize = True
+        lblGameMessage.Anchor = AnchorStyles.None
+        lblGameMessage.Font = ThemeManager.GetFont("Segoe UI", 15.0F, FontStyle.Bold)
+        lblGameMessage.BackColor = Color.Transparent
+        _roundCard.Controls.Add(lblGameMessage, 0, 0)
+        _roundCard.Controls.Add(_roundSummary, 0, 1)
+        _roundCard.Controls.Add(_roundStatus, 0, 2)
+        _cardActions.Controls.AddRange(New Control() {_cardPrimary, _cardTopTen})
+        _roundCard.Controls.Add(_cardActions, 0, 3)
+        _roundCard.Controls.Add(_diagnostics, 0, 4)
+        AddHandler _cardPrimary.Click,
+            Sub(sender, args)
+                If _state = RoundState.Paused Then
+                    ResumeRound()
+                ElseIf _state = RoundState.Finished Then
+                    BeginRound()
+                End If
+            End Sub
+        AddHandler _cardTopTen.Click, AddressOf ShowLeaderboard
+        AddHandler _diagnostics.LinkClicked, Sub(sender, args) OpenDiagnostics(_leaderboard.LastDiagnosticPath)
+        pnlPlayfield.Controls.Add(_roundCard)
     End Sub
 
     Private Sub btnStart_Click(sender As Object, e As EventArgs) Handles btnStart.Click
@@ -313,7 +361,7 @@ Public Class frmCatchGame
 
     Private Sub ResumeRound()
         SetRoundState(RoundState.Running)
-        lblGameMessage.Hide()
+        _roundCard.Hide()
         _activeTime.Start()
         gameTimer.Start()
         pnlPlayfield.Focus()
@@ -323,7 +371,7 @@ Public Class frmCatchGame
         gameTimer.Stop()
         _activeTime.Stop()
         SetRoundState(RoundState.Paused)
-        ShowRoundMessage("PAUSED" & vbCrLf & "Choose Resume to continue.")
+        ShowRoundCard("Paused", RoundSummary(), "")
     End Sub
 
     Private Sub TogglePause(sender As Object, e As EventArgs)
@@ -433,75 +481,122 @@ Public Class frmCatchGame
     End Sub
 
     Private Sub UpdateHud()
-        lblScore.Text = "SCORE " & _score.ToString("0000")
-        lblLives.Text = "LIVES " & _lives.ToString()
-        lblHint.Text = "Level " & _level.ToString() & "   ·   ← / → or A / D   ·   Food +10"
+        lblScore.Text = "Score " & _score.ToString("0000")
+        lblLives.Text = "Lives " & _lives.ToString()
+        _levelLabel.Text = "Level " & _level.ToString()
     End Sub
 
     Private Sub EndGame()
         gameTimer.Stop()
         _activeTime.Stop()
         SetRoundState(RoundState.Finished)
-        Dim scoreStatus As String = "Score saved. Choose Play Again or Top 10."
+        Dim saved As Boolean = False
         Try
             _leaderboard.SaveScore(_roundPlayer, _difficulty, _score)
+            saved = True
         Catch ex As Exception When CatchGameLeaderboard.IsStorageError(ex)
-            Debug.WriteLine(ex.ToString())
-            scoreStatus = "Score could not be saved. You can still play again."
+            Debug.WriteLine(ex.Message)
         End Try
-        ShowRoundMessage("GAME OVER" & vbCrLf & _difficulty.ToString() & " · Level " & _level.ToString() &
-                         " · Score " & _score.ToString() & vbCrLf & scoreStatus)
+        ShowRoundCard("Game over", RoundSummary(), If(saved, "Score saved to the leaderboard.", "Score could not be saved."),
+                      showDiagnostics:=Not saved)
     End Sub
 
-    Private Sub ShowRoundMessage(message As String)
-        lblGameMessage.Text = message
-        lblGameMessage.BringToFront()
-        lblGameMessage.Show()
-        CenterGameMessage()
+    Private Function RoundSummary() As String
+        Return "Score " & _score.ToString() & "   ·   Level " & _level.ToString() & "   ·   " & _difficulty.ToString()
+    End Function
+
+    Private Sub ShowRoundCard(title As String, summary As String, status As String, Optional showDiagnostics As Boolean = False)
+        lblGameMessage.Text = title
+        _roundSummary.Text = summary
+        _roundSummary.Visible = summary.Length > 0
+        _roundStatus.Text = status
+        _roundStatus.Visible = status.Length > 0
+        _cardPrimary.Text = If(_state = RoundState.Paused, "Resume", "Play Again")
+        _cardActions.Visible = _state = RoundState.Paused OrElse _state = RoundState.Finished
+        _cardTopTen.Visible = _state = RoundState.Finished
+        _diagnostics.Visible = showDiagnostics AndAlso _leaderboard.LastDiagnosticPath IsNot Nothing
+        _roundCard.Show()
+        CenterRoundCard()
+        _roundCard.BringToFront()
     End Sub
 
     Private Sub ShowLeaderboard(sender As Object, e As EventArgs)
         If _state = RoundState.Running Then PauseRound()
+        Dim scores As DataTable = Nothing
         Try
-            Using scores As DataTable = _leaderboard.ReadTopTen(),
-                  dialog As New Form With {.Text = "Catch Game Top 10", .ClientSize = New Size(570, 360),
-                                           .StartPosition = FormStartPosition.CenterParent, .ShowInTaskbar = False}
+            scores = _leaderboard.ReadTopTen()
+        Catch ex As Exception When CatchGameLeaderboard.IsStorageError(ex)
+            Debug.WriteLine(ex.Message)
+        End Try
+
+        Using results As DataTable = scores,
+              dialog As New Form With {.Text = "Catch Game Top 10", .ClientSize = New Size(570, 360),
+                                       .StartPosition = FormStartPosition.CenterParent, .ShowInTaskbar = False}
+            If results Is Nothing Then
+                Dim status As New Label With {.Text = "The local leaderboard is unavailable.", .Dock = DockStyle.Top,
+                                               .AutoSize = True, .Padding = New Padding(12)}
+                Dim path As String = _leaderboard.LastDiagnosticPath
+                If path IsNot Nothing Then
+                    Dim link As New LinkLabel With {.Text = "Open diagnostics", .AutoSize = True,
+                                                    .Dock = DockStyle.Top, .Padding = New Padding(12)}
+                    AddHandler link.LinkClicked, Sub(source, args) OpenDiagnostics(path)
+                    dialog.Controls.Add(link)
+                End If
+                dialog.Controls.Add(status)
+            Else
                 Dim grid As New DataGridView With {
-                    .Dock = DockStyle.Fill, .DataSource = scores, .ReadOnly = True,
+                    .Dock = DockStyle.Fill, .DataSource = results, .ReadOnly = True,
                     .AllowUserToAddRows = False, .AllowUserToDeleteRows = False, .RowHeadersVisible = False,
                     .AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
                 }
                 dialog.Controls.Add(grid)
-                If scores.Rows.Count = 0 Then
+                If results.Rows.Count = 0 Then
                     dialog.Controls.Add(New Label With {.Text = "Complete a round to record a score.", .Dock = DockStyle.Top,
                                                        .Height = 30, .TextAlign = ContentAlignment.MiddleCenter})
                 End If
-                ThemeManager.ApplyTheme(dialog)
-                dialog.ShowDialog(TopLevelControl)
+            End If
+            ThemeManager.ApplyTheme(dialog)
+            dialog.ShowDialog(TopLevelControl)
+        End Using
+    End Sub
+
+    Private Sub OpenDiagnostics(path As String)
+        If path Is Nothing Then Return
+        Try
+            Using launched As Process = Process.Start(New ProcessStartInfo(path) With {.UseShellExecute = True})
             End Using
-        Catch ex As Exception When CatchGameLeaderboard.IsStorageError(ex)
-            Debug.WriteLine(ex.ToString())
-            MessageBox.Show(Me, "Could not open the local leaderboard.", "Catch Game", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+        Catch ex As ComponentModel.Win32Exception
+            Debug.WriteLine(ex.Message)
+            MessageBox.Show(Me, "Open the following diagnostics file in a text editor." & vbCrLf & path,
+                            "Catch Game", MessageBoxButtons.OK, MessageBoxIcon.Information)
         End Try
     End Sub
 
-    Private Sub PositionPlayer()
+    Private Sub PositionPlayer(Optional recenter As Boolean = True)
         picPlayer.Top = Math.Max(0, pnlPlayfield.ClientSize.Height - picPlayer.Height - 10)
-        picPlayer.Left = Math.Max(0, (pnlPlayfield.ClientSize.Width - picPlayer.Width) \ 2)
+        Dim maxLeft As Integer = Math.Max(0, pnlPlayfield.ClientSize.Width - picPlayer.Width)
+        picPlayer.Left = If(recenter, maxLeft \ 2, Math.Min(picPlayer.Left, maxLeft))
     End Sub
 
-    Private Sub CenterGameMessage()
-        lblGameMessage.Width = Math.Max(1, Math.Min(LogicalToDeviceUnits(640), pnlPlayfield.ClientSize.Width - LogicalToDeviceUnits(24)))
-        Dim messageSize As Size = TextRenderer.MeasureText(lblGameMessage.Text, lblGameMessage.Font,
-                                                           New Size(lblGameMessage.Width, Integer.MaxValue), TextFormatFlags.WordBreak)
-        lblGameMessage.Height = messageSize.Height + LogicalToDeviceUnits(16)
-        lblGameMessage.Left = Math.Max(0, (pnlPlayfield.ClientSize.Width - lblGameMessage.Width) \ 2)
-        lblGameMessage.Top = Math.Max(0, (pnlPlayfield.ClientSize.Height - lblGameMessage.Height) \ 2 - 20)
+    Private Sub CenterRoundCard()
+        Dim width As Integer = Math.Max(1, Math.Min(LogicalToDeviceUnits(380), pnlPlayfield.ClientSize.Width - LogicalToDeviceUnits(24)))
+        _roundCard.MaximumSize = New Size(width, 0)
+        _roundCard.MinimumSize = New Size(width, 0)
+        Dim textWidth As Integer = Math.Max(1, width - _roundCard.Padding.Horizontal - 8)
+        For Each label As Control In {lblGameMessage, _roundSummary, _roundStatus}
+            label.MaximumSize = New Size(textWidth, 0)
+        Next
+        _roundCard.PerformLayout()
+        _roundCard.Left = Math.Max(0, (pnlPlayfield.ClientSize.Width - _roundCard.Width) \ 2)
+        _roundCard.Top = Math.Max(0, (pnlPlayfield.ClientSize.Height - _roundCard.Height) \ 2)
     End Sub
 
     Private Sub pnlPlayfield_Resize(sender As Object, e As EventArgs) Handles pnlPlayfield.Resize
-        PositionPlayer()
-        CenterGameMessage()
+        PositionPlayer(_state = RoundState.Ready)
+        For Each item As FallingItem In _fallingItems
+            item.Box.Left = Math.Min(item.Box.Left, Math.Max(0, pnlPlayfield.ClientSize.Width - item.Box.Width))
+        Next
+        CenterRoundCard()
     End Sub
 
     Private Sub frmCatchGame_PreviewKeyDown(sender As Object, e As PreviewKeyDownEventArgs) _
@@ -538,15 +633,11 @@ Public Class frmCatchGame
         _pressedKeys.Clear()
     End Sub
 
-    Private Sub frmCatchGame_FormClosed(sender As Object, e As FormClosedEventArgs) Handles MyBase.FormClosed
-        ReleaseItemSprites()
-    End Sub
-
     Friend Sub ReleaseGameResources()
         If gameTimer IsNot Nothing Then gameTimer.Stop()
         _activeTime.Stop()
         ClearFallingItems()
-        picPlayer.Image = Nothing
+        If picPlayer IsNot Nothing Then picPlayer.Image = Nothing
         If _playerSprite IsNot Nothing Then
             _playerSprite.Dispose()
             _playerSprite = Nothing
@@ -571,6 +662,15 @@ Public Class frmCatchGame
 
     Private Sub picPlayer_Click(sender As Object, e As EventArgs) Handles picPlayer.Click
 
+    End Sub
+End Class
+
+Friend NotInheritable Class CatchGamePlayfield
+    Inherits Panel
+
+    Friend Sub New()
+        SetStyle(ControlStyles.Selectable, True)
+        DoubleBuffered = True
     End Sub
 End Class
 

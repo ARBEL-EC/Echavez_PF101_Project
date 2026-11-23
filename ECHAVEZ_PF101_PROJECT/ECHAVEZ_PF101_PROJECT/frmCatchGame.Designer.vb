@@ -25,7 +25,7 @@ Partial Class frmCatchGame
         Me.btnStart = New System.Windows.Forms.Button()
         Me.btnRestart = New System.Windows.Forms.Button()
         Me.lblHint = New System.Windows.Forms.Label()
-        Me.pnlPlayfield = New System.Windows.Forms.Panel()
+        Me.pnlPlayfield = New CatchGamePlayfield()
         Me.picPlayer = New System.Windows.Forms.PictureBox()
         Me.lblGameMessage = New System.Windows.Forms.Label()
         Me.gameTimer = New System.Windows.Forms.Timer(Me.components)
