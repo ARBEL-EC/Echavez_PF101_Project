@@ -565,7 +565,7 @@ Public Class frmCatchGame
         Try
             Using launched As Process = Process.Start(New ProcessStartInfo(path) With {.UseShellExecute = True})
             End Using
-        Catch ex As ComponentModel.Win32Exception
+        Catch ex As System.ComponentModel.Win32Exception
             Debug.WriteLine(ex.Message)
             MessageBox.Show(Me, "Open the following diagnostics file in a text editor." & vbCrLf & path,
                             "Catch Game", MessageBoxButtons.OK, MessageBoxIcon.Information)
