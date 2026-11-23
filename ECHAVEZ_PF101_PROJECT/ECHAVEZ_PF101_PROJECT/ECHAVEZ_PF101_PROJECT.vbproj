@@ -14,6 +14,8 @@
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <!-- Keep the SQLite restore graph aligned with the checked-in lock across build hosts. -->
+    <RuntimeIdentifiers>win;win-arm64;win-x64;win-x86</RuntimeIdentifiers>
     <Prefer32Bit>false</Prefer32Bit>
     <Deterministic>true</Deterministic>
     <PublishUrl>publish\</PublishUrl>
