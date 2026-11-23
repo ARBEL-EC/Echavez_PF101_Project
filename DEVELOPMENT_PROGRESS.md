@@ -1,5 +1,16 @@
 # PF101 development progress
 
+## Task 7 · Runtime diagnosis and portfolio navigation
+
+Based on `main` at `fb1d8c9`.
+
+- **Leaderboard.** Added schema inspection, a transactional migration for missing leaderboard metadata, and a persistent diagnostic log linked from the game. Tests reproduced the old read and write failures on an incomplete schema and verified that the update retained scores. The reported Windows messages lacked the inner exception, so the cause on that machine is still unconfirmed.
+- **Navigation and project pages.** Added collapsible Course Lessons, Practice & Activities, Project Information and Week 2 groups inside the existing sidebar. The profile footer and independent scrolling remain. Overview includes the portfolio purpose and direct links. About This Project, Course Coverage and Developer Information give the professor a clear route to evaluate the work.
+- **Catch Game.** Separated the HUD, controls, playfield and compact results card while keeping the existing gameplay and sprites. The playfield can take keyboard focus and uses double buffering. Score and leaderboard errors stay in the results UI with a diagnostic link when available.
+- **Audit fixes.** The Week 4 Clear action now disposes removed buttons. Navigation uses cached fonts and catches page construction errors before replacing a working view. Local SQLite files and sidecars are ignored.
+
+Clean Debug and Release builds passed using the existing cloud overrides. Automated storage checks covered migration, ranked retrieval, retention, and diagnostics on read-only, incompatible and corrupt fixtures. The two-process harness also checked pacing, quizzes and DataRow transitions. A generated verification ZIP passed integrity and x86/x64 dependency checks. [BUG_AUDIT.md](BUG_AUDIT.md) has the findings and outstanding Windows Release, layout and gameplay checks.
+
 ## Task 6 · Catch Game, course practice, and demonstrations
 
 Based on `main` at `7ff7812`. The new questions and UI use this project’s course materials and Dark Obsidian controls.
