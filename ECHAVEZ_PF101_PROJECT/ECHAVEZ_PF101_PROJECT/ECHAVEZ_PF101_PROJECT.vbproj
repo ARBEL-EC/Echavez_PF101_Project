@@ -189,6 +189,7 @@
     <Compile Include="frmLesson8_Controls.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="PortfolioPages.vb" />
     <Compile Include="frmMain.vb">
       <SubType>Form</SubType>
     </Compile>

@@ -212,12 +212,11 @@
     End Sub
 
     Private Sub btnClearDynamic_Click(sender As Object, e As EventArgs) Handles btnClearDynamic.Click
-        For Each ctrl As Control In pnlDynamic.Controls
-            If TypeOf ctrl Is Button Then
-                RemoveHandler ctrl.Click, AddressOf DynamicButton_Click
-            End If
+        For index As Integer = pnlDynamic.Controls.Count - 1 To 0 Step -1
+            Dim ctrl As Control = pnlDynamic.Controls(index)
+            RemoveHandler ctrl.Click, AddressOf DynamicButton_Click
+            ctrl.Dispose() ' Disposing removes it from its parent.
         Next
-        pnlDynamic.Controls.Clear()
         dynamicCounter = 0
     End Sub
 
