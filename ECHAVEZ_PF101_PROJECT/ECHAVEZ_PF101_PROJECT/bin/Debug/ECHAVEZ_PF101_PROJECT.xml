@@ -37,12 +37,6 @@ ECHAVEZ_PF101_PROJECT
   Looks up a localized resource of type System.Drawing.Bitmap.
 </summary>
 </member>
-<member name="M:ECHAVEZ_PF101_PROJECT.frmMain.LayoutOverviewBackground">
- <summary>
- Extends the wallpaper to start at the screen's left edge (X = 0),
- hiding the bottom-left watermark behind the sidebar.
- </summary>
-</member>
 <member name="P:ECHAVEZ_PF101_PROJECT.ThemeManager.FontFamilyName">
  <summary>Font family used for standard UI.</summary>
 </member>
