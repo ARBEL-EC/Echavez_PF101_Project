@@ -1,5 +1,20 @@
 # PF101 development progress
 
+## Task 9 · Final QA and submission packaging
+
+Based on `main` at `2d78b2b`. The existing app and leaderboard were working on Windows per the project owner. The supplied syllabus lists installer creation with Inno Setup as Laboratory Activity No. 4 on page 7, and describes the semester portfolio on page 9. [PF101 syllabus](OOP%20PPT/PF101%20Syllabus.pdf)
+
+| Area | Changes and verification |
+| --- | --- |
+| Active project | Confirmed that the solution loads the nested .NET Framework 4.7.2 VB project. Inspected 44 compile items, 12 embedded resources, three linked images, 25 navigation routes, six Overview shortcuts, and 47 designer button subscriptions. The week routes remain chronological, with four Week 2 OOP labs and a Week 9 status page. Traced dynamic game, quiz, CRUD, and MDI handlers. |
+| Locked restore | A fresh cloud restore reproduced `NU1004` because the Windows-generated lock records four runtime identifiers and the project had left them implicit. The active project now declares the same identifiers, and clean locked Debug and Release builds passed with the out-of-tree Linux build overrides. The existing dependency versions and x86/x64 distribution are retained. |
+| Installer and portable ZIP | `Installer/PF101.iss` provides per-user Setup, a Framework prerequisite check, the Start Menu shortcut, an optional desktop shortcut, and uninstall that preserves Local AppData. `Package-Release.ps1` stages the same 18 runtime files for both formats. It excludes older binaries, PDBs, database files, and other build output. The two historical ZIPs lacked assets and SQLite, and the tracked Release EXE is stale. |
+| Artifact checks | Both fresh outputs contained all five source-matching GIF and PNG assets, all managed dependencies, and the original x86 and x64 SQLite binaries. Verified Microsoft.Data.Sqlite 10.0.15 and SQLitePCLRaw 2.1.14, plus the generated redirects to SQLitePCLRaw.core 2.1.14.3207 and System.Memory 4.0.5.0. The cloud Release ZIP passed CRC and exact-content checks. An ISCC test double exercised spaced paths and failure handling, including preservation of prior packages. |
+| Model checks | Rebuilt the isolated VB harnesses against current sources. Student CRUD, decimal scores, persistence and conflict handling passed. Leaderboard migration, ranking, retention, failure diagnostics and separation from student records passed. Difficulty pacing, both practice quiz banks, and all four DataRow states also passed. |
+| Evaluator guide | Updated Overview and Week 15 text for the lesson shortcuts, game controls, SQLite first use and deployment. README includes the source archive and Windows packaging commands. `FINAL_TEST_CHECKLIST.md` covers offline install, update and uninstall, data retention, routes, lessons and runtime checks. |
+
+Native Windows MSBuild, WinForms and Windows SQLite loading still require verification for this revision. Inno Setup was unavailable in the Linux environment, so the installer was not compiled or exercised. The cloud Release ZIP verifies the archive contents using the cloud resource build overrides. Generate the submission binaries on Windows and record the manual results. [Final Windows checklist](FINAL_TEST_CHECKLIST.md)
+
 ## Task 7 · Runtime diagnosis and portfolio navigation
 
 Based on `main` at `fb1d8c9`.

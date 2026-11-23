@@ -1,39 +1,56 @@
-# Echavez_PF101_Project
+# ECHAVEZ_PF101_PROJECT
 
-## Build on Windows
+PF101 Object-Oriented Programming portfolio by **Arlvel L. Echavez**, BSIT SBIT-2E, Quezon City University. Explore VB.NET, Windows Forms, and SQLite through weekly labs, practice quizzes, and the Animation Catch Game.
 
-Install the Visual Studio **.NET desktop development** workload and the **.NET Framework 4.7.2 Developer Pack**. Use Visual Studio 2019 or later for the NuGet restore and native-library copy. Open the solution in a version that supports `.slnx`, or open the nested [VB project](ECHAVEZ_PF101_PROJECT/ECHAVEZ_PF101_PROJECT/ECHAVEZ_PF101_PROJECT.vbproj) directly. Restore NuGet packages from nuget.org on the development machine. The checked-in lock file records the versions and content hashes.
+## Run on Windows
 
-Build **Debug** and **Release** with **Any CPU**. Both configurations copy `background.gif`, `player.png`, `food.png`, `hazard.png`, and `Bomb.png` to `Assets` next to the executable. The Catch Game prefers `hazard.png` and tries `Bomb.png` if the first image is missing or unreadable.
+Use a compatible Windows 10 or 11 PC with x86 or x64 support and **.NET Framework 4.7.2 or a compatible later 4.x release**. The distributed app runs offline with its bundled SQLite libraries. The recipient needs no Visual Studio, Inno Setup, NuGet, or database server.
 
-## Weeks 9–15
+- **Installer.** Run `ECHAVEZ_PF101_PROJECT_Setup.exe` and open **ECHAVEZ_PF101_PROJECT** from Start. Setup installs for the current user and offers a desktop shortcut. If Setup reports that the required .NET Framework is missing, install an appropriate version for the PC and rerun Setup. [Microsoft .NET Framework downloads](https://dotnet.microsoft.com/download/dotnet-framework)
+- **Portable ZIP.** Extract all of `ECHAVEZ_PF101_PROJECT_App.zip` to a new folder and run `ECHAVEZ_PF101_PROJECT.exe`. Keep the `Assets` and `runtimes` folders beside the executable.
 
-- **Week 9** marks the midterm materials pending.
-- **Weeks 10–12** open the existing debugging walkthrough, MDI lab and print editor from the sidebar.
-- **Week 13** opens Student Performance Records. Enter a name, assessment and a score from 0 to 100 with up to two decimal places. Select a saved row to edit or delete it. Search matches a literal substring of the student name, ignoring case. Show All / Refresh clears the search.
-- **Weeks 14–15** open the same module at its DataSet and offline-deployment tabs. The grid displays a disconnected DataTable, while parameterized commands write changes back to SQLite.
+## Evaluate the portfolio
 
-The database is created the first time Student Performance Records opens under each Windows account. The file is stored at `%LOCALAPPDATA%\Echavez_PF101_Project\StudentPerformance.sqlite3`. Replacing or moving an extracted app folder keeps records available to the same Windows account.
+1. Open **Overview** for shortcuts or **Project Information → Course Coverage** for the learning objective for each week.
+2. Under **Course Lessons**, expand **Week 2 · OOP Concepts** for the four OOP labs. Weeks 3–15 follow in order. The Week 9 page explains that the supplied midterm materials are pending.
+3. Under **Practice & Activities**, open **Midterm Practice** or **Finals Practice** for review questions and explanations. In **Animation Catch Game**, choose a difficulty and start. Move with A/D or the arrow keys to collect food and avoid hazards, and open **Top 10** to see saved scores.
+4. Open **Week 13 · SQLite Records** and add a name, assessment, and score from 0 to 100. Select a row to edit or delete it, or search by student name. Week 14 shows DataSets and isolated DataRow states. Week 15 explains offline deployment.
 
-## Package a Windows Release
+Each Windows account has its own `StudentPerformance.sqlite3` and `CatchGameScores.sqlite3` under `%LOCALAPPDATA%\Echavez_PF101_Project`. The app creates each database on first use. Setup, updates, and uninstall leave both databases in place.
 
-From the repository root in a Visual Studio Developer PowerShell, run the packaging script with a destination ZIP path.
+## Build the active project
+
+On the development PC, install the Visual Studio **.NET desktop development** workload and **.NET Framework 4.7.2 Developer Pack**. Use Visual Studio 2019 or later with NuGet access. An IDE with `.slnx` support can open the solution. Otherwise open the nested `.vbproj` directly. [Active solution](ECHAVEZ_PF101_PROJECT/ECHAVEZ_PF101_PROJECT.slnx) · [Active VB project](ECHAVEZ_PF101_PROJECT/ECHAVEZ_PF101_PROJECT/ECHAVEZ_PF101_PROJECT.vbproj)
+
+Restore the pinned NuGet packages and rebuild **Debug** and **Release**, **Any CPU**. The package lock pins Microsoft.Data.Sqlite **10.0.15** and SQLitePCLRaw **2.1.14**. The build generates the executable configuration with its binding redirects. Both builds copy the five game assets, SQLite notices, managed dependencies, and the x86 and x64 SQLite DLLs. Keep the supplied native directories intact so SQLite can select the library for the current process.
+
+## Create the submission files
+
+From the repository root in a **Visual Studio Developer PowerShell on Windows**, build the portable Release ZIP.
 
 ```powershell
-.\Package-Release.ps1 -OutputPath "$env:TEMP\ECHAVEZ_PF101_PROJECT_App.zip"
+.\Package-Release.ps1 -OutputPath '.\dist\ECHAVEZ_PF101_PROJECT_App.zip'
 ```
 
-The script restores the locked packages and rebuilds into a fresh temporary directory. It checks the executable, config, game assets, third-party notices, managed SQLite dependencies and both native `e_sqlite3.dll` files before creating the archive. A successful run replaces an existing ZIP at the requested destination.
+For the ZIP and installer together, install **Inno Setup 6.3 or later** and point `-InnoSetupPath` at its compiler. If `ISCC.exe` is on PATH, omit that argument. [Inno Setup downloads](https://jrsoftware.org/isdl.php)
 
-Distribute the freshly generated ZIP. On the recipient’s computer, extract the entire archive and run `ECHAVEZ_PF101_PROJECT.exe` with .NET Framework 4.7.2 or a supported later 4.x runtime. Keep the `runtimes/win-x86/native` and `runtimes/win-x64/native` folders in place. The Any CPU build uses the native SQLite binary that matches the process architecture. The recipient can run offline without Visual Studio, NuGet, XAMPP or a database server.
+```powershell
+.\Package-Release.ps1 -OutputPath '.\dist\ECHAVEZ_PF101_PROJECT_App.zip' -BuildInstaller `
+    -InnoSetupPath 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
+```
 
-## Windows smoke test
+The script restores locked packages, rebuilds the nested project in temporary folders, and checks the runtime files before packaging. The ZIP and Setup use the same staged payload. Setup is written next to the ZIP. The script excludes build caches, debug symbols, source, and database files. [Inno Setup script](Installer/PF101.iss)
 
-1. Rebuild Debug and Release in Visual Studio. Check the five assets next to each executable and open the Catch Game in both configurations.
-2. Generate the ZIP, extract it to a new folder, and run the extracted executable. Check the animated overview, player, food, and hazard art. Start and restart the game, move with the arrows and A/D, catch food, and confirm hitting a hazard removes a life.
-3. In separate copies of the extracted folder, remove `hazard.png` or replace it with an invalid image. Reopen the app and verify that `Bomb.png` appears without a warning. With both hazard files unavailable, verify that the warning appears and the game continues with a crimson fallback. While the game is open, check that the sprite files can be renamed in a disposable test copy.
+From a Git checkout with the intended submission commit checked out, archive just the active project, packaging scripts, and documentation with the course references. Run this after generating or creating the `dist` folder.
 
-4. On Windows, open each of Weeks 9–15 and verify its starting view. In Week 13, add a record, select it and save an edit, search by name, and exercise both responses to the delete confirmation. Open Week 14 and compare the snapshot row count with the grid. Close and reopen the app to confirm persistence.
-5. Test the extracted Windows ZIP offline under a fresh standard-user account. Open Week 13 and confirm that the database is created in Local AppData. Exercise both process architectures on supported Windows targets. In a disposable test profile, check the error shown when the database location is inaccessible or corrupt.
+```powershell
+git archive --format=zip --output=dist/ECHAVEZ_PF101_PROJECT_Source.zip HEAD -- `
+    AGENTS.md README.md FINAL_TEST_CHECKLIST.md DEVELOPMENT_PROGRESS.md PROJECT_AUDIT.md BUG_AUDIT.md `
+    Package-Release.ps1 Installer 'OOP PPT' `
+    ECHAVEZ_PF101_PROJECT/ECHAVEZ_PF101_PROJECT.slnx `
+    ECHAVEZ_PF101_PROJECT/ECHAVEZ_PF101_PROJECT `
+    ':(exclude,icase,glob)**/.vs/**' ':(exclude,icase,glob)**/bin/**' `
+    ':(exclude,icase,glob)**/obj/**' ':(exclude,icase,glob)**/*.user'
+```
 
-The Linux cloud build can verify compilation, asset copying, and file formats. Run these smoke tests on Windows to verify WinForms and GDI+ behavior, including compatibility with the intended Visual Studio installation.
+Use the Windows checklist on a fresh standard-user account before handing over the source ZIP, portable ZIP, and any compiled Setup. The Linux verification build uses resource-generation overrides. Build and validate the submission binaries with native Windows MSBuild and Inno Setup. [FINAL_TEST_CHECKLIST.md](FINAL_TEST_CHECKLIST.md)
