@@ -445,7 +445,7 @@ Public Class frmCatchGame
         Dim scoreStatus As String = "Score saved. Choose Play Again or Top 10."
         Try
             _leaderboard.SaveScore(_roundPlayer, _difficulty, _score)
-        Catch ex As Exception When IsLeaderboardError(ex)
+        Catch ex As Exception When CatchGameLeaderboard.IsStorageError(ex)
             Debug.WriteLine(ex.ToString())
             scoreStatus = "Score could not be saved. You can still play again."
         End Try
@@ -479,18 +479,11 @@ Public Class frmCatchGame
                 ThemeManager.ApplyTheme(dialog)
                 dialog.ShowDialog(TopLevelControl)
             End Using
-        Catch ex As Exception When IsLeaderboardError(ex)
+        Catch ex As Exception When CatchGameLeaderboard.IsStorageError(ex)
             Debug.WriteLine(ex.ToString())
             MessageBox.Show(Me, "Could not open the local leaderboard.", "Catch Game", MessageBoxButtons.OK, MessageBoxIcon.Warning)
         End Try
     End Sub
-
-    Private Shared Function IsLeaderboardError(ex As Exception) As Boolean
-        Return TypeOf ex Is Microsoft.Data.Sqlite.SqliteException OrElse TypeOf ex Is IO.IOException OrElse
-               TypeOf ex Is UnauthorizedAccessException OrElse TypeOf ex Is System.Security.SecurityException OrElse
-               TypeOf ex Is TypeInitializationException OrElse TypeOf ex Is DllNotFoundException OrElse
-               TypeOf ex Is BadImageFormatException OrElse TypeOf ex Is EntryPointNotFoundException
-    End Function
 
     Private Sub PositionPlayer()
         picPlayer.Top = Math.Max(0, pnlPlayfield.ClientSize.Height - picPlayer.Height - 10)
