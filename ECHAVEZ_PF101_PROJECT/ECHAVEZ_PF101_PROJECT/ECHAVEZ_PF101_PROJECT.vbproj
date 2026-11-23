@@ -115,6 +115,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AnimalModels.vb" />
+    <Compile Include="CourseReview.vb" />
+    <Compile Include="frmCourseReview.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="StudentRecordsStore.vb" />
     <Compile Include="frmStudentRecords.vb">
       <SubType>Form</SubType>
