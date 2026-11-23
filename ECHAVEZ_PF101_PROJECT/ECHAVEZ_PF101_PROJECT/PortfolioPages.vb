@@ -56,9 +56,9 @@ Friend Module PortfolioPages
         End If
 
         AddRow(content, PageLabel("Course lessons", 14.0F, bold:=True))
-        AddRow(content, PageLabel("Start with OOP and VB.NET fundamentals in Weeks 1–8. Weeks 10–15 cover debugging, drawing, printing, SQLite, and DataSets.", 10.0F))
+        AddRow(content, PageLabel("Open Course Lessons in the sidebar. Expand Week 2 for four OOP labs, or use Course Coverage to find the activity for any week.", 10.0F))
         AddRow(content, PageLabel("Practice and activities", 14.0F, bold:=True))
-        AddRow(content, PageLabel("Review the course with two practice quizzes, try the event-driven Catch Game, or explore offline CRUD and DataRow states.", 10.0F))
+        AddRow(content, PageLabel("Try the midterm and finals quizzes. In Catch Game, use A/D or the arrow keys to catch food and avoid hazards. In SQLite Records, enter a student, assessment, and score to save your first record.", 10.0F))
 
         Dim shortcuts As New FlowLayoutPanel With {.Dock = DockStyle.Fill, .AutoSize = True}
         AddShortcut(shortcuts, "Start Course", Sub() navigate("week1"))
@@ -104,7 +104,7 @@ Friend Module PortfolioPages
         grid.Rows.Add("12", "Preview and print a document and handle text.", "Paginated editor printing and the Week 6 string lab")
         grid.Rows.Add("13", "Connect to a database and use parameterized CRUD.", "SQLite Student Performance Records")
         grid.Rows.Add("14", "Bind disconnected data and explain DataRow states.", "DataSet snapshot and isolated row-state exercise")
-        grid.Rows.Add("15", "Verify persistence and deploy a data-driven desktop app.", "Offline Release ZIP and first-run database guide")
+        grid.Rows.Add("15", "Verify persistence and deploy a data-driven desktop app.", "Portable ZIP, Inno Setup installer script, and offline deployment guide")
         Dim heading As Label = PageLabel("Course Coverage", 22.0F, bold:=True)
         heading.Dock = DockStyle.Top
         Dim description As Label = PageLabel("Learning objectives and the portfolio activity that demonstrates each one.", 10.0F)

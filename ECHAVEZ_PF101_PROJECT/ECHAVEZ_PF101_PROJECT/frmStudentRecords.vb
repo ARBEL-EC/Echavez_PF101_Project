@@ -47,7 +47,7 @@ Public Class frmStudentRecords
             vbCrLf & vbCrLf &
             "Add a record, search by name, and compare the row count here. Reopen the app to verify the data came from disk.", _snapshotStatus, practiceButton)
         AddReadingTab("Week 15 - Offline deployment",
-            "Build the Release ZIP with Package-Release.ps1 on the development machine. Extract the entire archive on a Windows computer with the .NET Framework runtime." &
+            "On the development machine, use Package-Release.ps1 to build the portable ZIP and the optional Inno Setup installer. On Windows with .NET Framework 4.7.2 or later 4.x, run Setup or extract the full ZIP and open the app." &
             vbCrLf & vbCrLf &
             "Open Student Performance Records. The first visit creates the table and database in your Windows profile. Add a record, close the app, " &
             "and reopen it to confirm persistence. Run the same exercise offline to verify that the packaged SQLite libraries and local file are sufficient." &
@@ -253,7 +253,7 @@ Public Class frmStudentRecords
                                    TypeOf ex Is TypeInitializationException OrElse TypeOf ex Is FileNotFoundException OrElse
                                    TypeOf ex Is EntryPointNotFoundException
             Debug.WriteLine(ex.ToString())
-            _status.Text = prefix & "SQLite could not start. Extract the complete Release ZIP and verify that it includes both native libraries."
+            _status.Text = prefix & "SQLite could not start. Reinstall the app or extract the full Release ZIP to restore its native libraries."
         Catch ex As Exception When TypeOf ex Is IOException OrElse TypeOf ex Is UnauthorizedAccessException OrElse
                                    TypeOf ex Is Security.SecurityException
             Debug.WriteLine(ex.ToString())

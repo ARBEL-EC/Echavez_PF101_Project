@@ -7,6 +7,7 @@
 *.pdb
 
 # Generated build files
+/dist/
 [Bb]in/
 [Oo]bj/
 [Dd]ebug/
